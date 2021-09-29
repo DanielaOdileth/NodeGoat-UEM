@@ -18,10 +18,10 @@ const AllocationsDAO = function (db) {
 
     this.update = async (userId, stocks, funds, bonds) => {
         /* const parsedUserId = parseInt(userId); */
-
+        const user = await userDAO.getUserById(userId);
         // Create allocations document
         const allocations = {
-            userId,
+            userId: user._id,
             stocks: stocks,
             funds: funds,
             bonds: bonds
@@ -29,13 +29,11 @@ const AllocationsDAO = function (db) {
 
         try {
 
-            const insertAllocation = await Allocation.updateOne({ userId }, allocations, { upsert: true }).exec();
+            const insertAllocation = await Allocation.updateOne({ userId: user._id }, allocations, { upsert: true }).exec();
 
             if (insertAllocation) {
 
                 console.log("Updated allocations");
-                const user = await userDAO.getUserById(userId);
-
                 // add user details
                 allocations.username = user.username;
                 allocations.firstName = user.firstName;
@@ -54,7 +52,6 @@ const AllocationsDAO = function (db) {
         /*  const parsedUserId = parseInt(userId); */
         try {
             const user = await userDAO.getUserById(userId);
-            console.log('user ---> getByUserIdAndThreshold', user);
             const searchCriteria = () => {
 
                 if (threshold) {
@@ -79,8 +76,6 @@ const AllocationsDAO = function (db) {
             }
 
             const allocations = await Allocation.find(searchCriteria());
-
-            console.log('allocations ----> ', allocations);
 
             if (!allocations.length) {
                 console.log("ERROR: No allocations found for the user");

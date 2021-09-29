@@ -1,3 +1,4 @@
+const { ProfileDAO } = require("../data/profile-dao");
 const { ResearchDAO } = require("../data/research-dao");
 const needle = require("needle");
 const {
@@ -8,8 +9,11 @@ function ResearchHandler() {
     "use strict";
 
     const researchDAO = new ResearchDAO();
+    const profile = new ProfileDAO();
 
-    this.displayResearch = (req, res) => {
+    this.displayResearch = async (req, res) => {
+        const { userId } = req.session;
+        const userProfile = await profile.getByUserId(userId);
 
         if (req.query.symbol) {
             const url = req.query.url + req.query.symbol;
@@ -29,6 +33,9 @@ function ResearchHandler() {
         }
 
         return res.render("research", {
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+            csrftoken: res.locals.csrfToken,
             environmentalScripts
         });
     };

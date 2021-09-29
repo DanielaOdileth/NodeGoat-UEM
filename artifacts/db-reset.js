@@ -70,12 +70,11 @@ console.log("******* db.reset *****");
 const collections = mongoose.connections[0].collections;
 const names = Object.keys(collections);
 
-console.log('names ----> ', names);
 console.log("*** Dropping existing collections ***");
 
 Promise.all([User.collection.drop(), Allocation.collection.drop(), Contribution.collection.drop()])
-    .then(async response => {
-        console.log('collections droped', response);
+    .then(async () => {
+        console.log('collections droped');
     }).catch(err => {
         if (err.codeName === "NamespaceNotFound") {
             console.warn('There is no collections on the db');
@@ -86,7 +85,6 @@ Promise.all([User.collection.drop(), Allocation.collection.drop(), Contribution.
 
 User.insertMany(USERS_TO_INSERT)
     .then(async response => {
-        console.log('****** DATA ******* ', response);
         // Adding key values to insert Allocations 
         const allocations = response.map(user => {
             const stocks = Math.floor((Math.random() * 40) + 1);
@@ -111,7 +109,7 @@ User.insertMany(USERS_TO_INSERT)
                 process.exit(0);
             });
     }).catch(error => {
-        console.log('***** error ***** ', error);
+        console.log('error to insertMany users', error);
         process.exit(1);
     });
 

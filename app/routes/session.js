@@ -17,7 +17,7 @@ function SessionHandler() {
         const funds = Math.floor((Math.random() * 40) + 1);
         const bonds = 100 - (stocks + funds);
 
-        return allocationsDAO.update(user._id, stocks, funds, bonds);
+        return allocationsDAO.update(user.userId, stocks, funds, bonds);
         /* allocationsDAO.update(user._id, stocks, funds, bonds, (err) => {
             if (err) return next(err);
         }); */
@@ -51,7 +51,6 @@ function SessionHandler() {
     };
 
     this.handleLoginRequest = async (req, res, next) => {
-        console.log('**** CALLING handleLoginRequest ****');
         const {
             userName,
             password
@@ -67,6 +66,7 @@ function SessionHandler() {
                     userName: userName,
                     password: "",
                     loginError: errorMessage,
+                    csrftoken: res.locals.csrfToken,
                     environmentalScripts
                 });
             }
@@ -77,6 +77,7 @@ function SessionHandler() {
                 userName: userName,
                 password: "",
                 loginError: error.errorMessage,
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         }
@@ -152,6 +153,7 @@ function SessionHandler() {
             userNameError: "",
             emailError: "",
             verifyError: "",
+            csrftoken: res.locals.csrfToken,
             environmentalScripts
         });
     };
@@ -232,22 +234,21 @@ function SessionHandler() {
                 const isTheUserExists = await userDAO.getUserByUserName(userName);
 
                 /* if (err) return next(err); */
-                console.log('isTheUserExists ---> ', isTheUserExists);
                 if (isTheUserExists) {
                     errors.userNameError = "User name already in use. Please choose another";
                     return res.render("signup", {
                         ...errors,
+                        csrftoken: res.locals.csrfToken,
                         environmentalScripts
                     });
                 }
 
                 /* userDAO.addUser(userName, firstName, lastName, password, email, (err, user) => { */
                 const savedUser = await userDAO.addUser(userName, firstName, lastName, password, email);
-                const { firstName, lastName, userId } = savedUser;
+                const { firstName: newFirstName, lastName: newLastName, userId } = savedUser;
                 /* if (err) return next(err);
 */
                 //prepare data for the user
-                console.log('savedUser ---> ', savedUser);
                 await prepareUserData(savedUser, next);
                 /*
                 sessionDAO.startSession(user._id, (err, sessionId) => {
@@ -263,9 +264,10 @@ function SessionHandler() {
                     /* user.userId = user._id; */
 
                     return res.render("dashboard", {
-                        firstName,
-                        lastName,
+                        firstName: newFirstName,
+                        lastName: newLastName,
                         userId,
+                        csrftoken: res.locals.csrfToken,
                         environmentalScripts
                     });
                 });
@@ -279,6 +281,7 @@ function SessionHandler() {
             console.log("user did not validate");
             return res.render("signup", {
                 ...errors,
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         }
@@ -304,7 +307,6 @@ function SessionHandler() {
         try {
             const user = await userDAO.getUserById(userId);
             if (user) {
-                console.log('user -----> ', user);
                 return res.render("dashboard", {
                     firstName: user.firstName,
                     lastName: user.lastName,

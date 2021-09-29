@@ -1,4 +1,5 @@
 const { BenefitsDAO } = require("../data/benefits-dao");
+const { ProfileDAO } = require("../data/profile-dao");
 const {
     environmentalScripts
 } = require("../../config/config");
@@ -7,12 +8,18 @@ function BenefitsHandler() {
     "use strict";
 
     const benefits = new BenefitsDAO();
+    const profile = new ProfileDAO();
 
     this.displayBenefits = async (req, res, next) => {
         try {
+            const { userId } = req.session;
+            const userProfile = await profile.getByUserId(userId);
             const users = await benefits.getAllNonAdminUsers();
             return res.render("benefits", {
                 users,
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                csrftoken: res.locals.csrfToken,
                 user: {
                     isAdmin: true
                 },
@@ -20,6 +27,11 @@ function BenefitsHandler() {
             });
         } catch (error) {
             console.log('there was an error to displayBenefits', error);
+            const data = {
+                updateError: 'There was an error to get users benefits',
+                environmentalScripts
+            };
+            return res.render("benefits", { updateError: true, data });
         }
 
         /* benefitsDAO.getAllNonAdminUsers((error, users) => {
@@ -42,7 +54,10 @@ function BenefitsHandler() {
             benefitStartDate
         } = req.body;
 
+        const { userId: adminUserId } = req.session;
+
         try {
+            const userProfile = await profile.getByUserId(adminUserId);
             await benefits.updateBenefits(userId, benefitStartDate);
 
 
@@ -53,7 +68,10 @@ function BenefitsHandler() {
                 user: {
                     isAdmin: true
                 },
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
                 updateSuccess: true,
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             };
 
@@ -61,6 +79,17 @@ function BenefitsHandler() {
 
         } catch (error) {
             console.log('There was an error to updateBenefits', error);
+            const data = {
+                updateError: 'There was an error to update user benefits',
+                environmentalScripts
+            };
+            return res.render("benefits", {
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                csrftoken: res.locals.csrfToken,
+                updateError: true,
+                data
+            });
         }
 
         /* benefitsDAO.updateBenefits(userId, benefitStartDate, (error) => {

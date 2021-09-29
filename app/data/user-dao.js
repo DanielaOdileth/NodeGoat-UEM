@@ -96,7 +96,6 @@ function UserDAO() {
             }
         } */
 
-        console.log('userName ---> ', userName);
         return User.findOne({
             username: userName,
             password,
@@ -108,7 +107,6 @@ function UserDAO() {
 
     // This is the good one, see the next function
     this.getUserById = (userId) => {
-        console.log('userId --->', userId);
         return User.findOne({
             /*  _id: ObjectId(userId) */
             userId: userId

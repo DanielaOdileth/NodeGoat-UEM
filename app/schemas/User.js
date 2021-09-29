@@ -11,8 +11,9 @@ const User = new Schema({
     email: { type: String },
     address: { type: String },
     bankAcc: { type: Number },
+    bankRouting: { type: String },
     ssn: { type: Number },
-    benefitStartDate: { type: Date, required: false  },
+    benefitStartDate: { type: Date },
     dob: { type: Date },
     website: { type: String },
 }, { timestamps: true });

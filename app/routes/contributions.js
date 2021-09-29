@@ -80,7 +80,6 @@ function ContributionsHandler() {
             const contributionsUpdated =  await contributions.update(userId, preTax, afterTax, roth)
             contributionsUpdated.updateSuccess = true;
             contributionsUpdated.csrftoken = res.locals.csrfToken;
-            console.log('contributionsUpdated ----> ', contributionsUpdated);
             return res.render("contributions", {
                 ...contributionsUpdated,
                 environmentalScripts

@@ -17,15 +17,12 @@ function AllocationsHandler() {
             userId
         } = req.params; */
         const { userId } = req.session;
-        console.log('userId ----> ', userId);
         const {
             threshold
         } = req.query
 
         try {
-            console.log('***** GETTING ALLOCATIONS ******');
             const allocations = await allocationsDAO.getByUserIdAndThreshold(userId, threshold);
-            console.log('-----> allocations --->', allocations);
             return res.render("allocations", {
                 userId,
                 allocations,

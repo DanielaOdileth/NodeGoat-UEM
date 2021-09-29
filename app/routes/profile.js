@@ -1,4 +1,4 @@
-const ProfileDAO = require("../data/profile-dao").ProfileDAO;
+const { ProfileDAO } = require("../data/profile-dao");
 const ESAPI = require('node-esapi')
 const {
     environmentalScripts
@@ -27,14 +27,36 @@ function ProfileHandler() {
             // fix it by replacing the above with another template variable that is used for 
             // the context of a URL in a link header
             // doc.website = ESAPI.encoder().encodeForURL(doc.website)
-            console.log('userProfile ---> ', userProfile);
+            const {
+                firstName,
+                lastName,
+                ssn,
+                dob,
+                bankAcc,
+                bankRouting,
+                address,
+                website
+            } = userProfile
             return res.render("profile", {
-                ...userProfile,
+                /* ...userProfile, */
+                firstName,
+                lastName,
+                ssn,
+                dob,
+                bankAcc,
+                bankRouting,
+                address,
+                website,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         } catch (error) {
             console.log('There was an error to display profile', error);
+            return res.render("profile", {
+                updateError: 'There was an error to get the user info',
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
         }
         /* }); */
     };
@@ -48,7 +70,8 @@ function ProfileHandler() {
             dob,
             address,
             bankAcc,
-            bankRouting
+            bankRouting,
+            website
         } = req.body;
 
         // Fix for Section: ReDoS attack
@@ -89,7 +112,8 @@ function ProfileHandler() {
                 dob,
                 address,
                 bankAcc,
-                bankRouting);
+                bankRouting,
+                website);
 
             /*  if (err) return next(err); */
 
@@ -102,14 +126,25 @@ function ProfileHandler() {
                 userupdated.updateSuccess = true; //remove updateSuccess
             }
 
-            console.log('userupdated ---> ', userupdated);
             return res.render("profile", {
-                ...userupdated,
+                firstName,
+                lastName,
+                ssn,
+                dob,
+                address,
+                bankAcc,
+                bankRouting,
+                website,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         } catch (error) {
             console.log('There was an error to handleProfileUpdate', error);
+            return res.render("profile", {
+                updateError: 'There was an error to update user',
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
         }
 
     };
