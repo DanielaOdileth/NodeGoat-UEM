@@ -7,20 +7,25 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.15.1",
+    "compression": "^1.7.4",
     "consolidate": "^0.14.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "csurf": "^1.8.3",
     "dont-sniff-mimetype": "^1.0.0",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
-    "forever": "^2.0.0",
-    "helmet": "^2.0.0",
+    "forever": "^4.0.1",
+    "helmet": "^4.6.0",
     "marked": "0.3.9",
-    "mongodb": "^2.1.18",
+    "mongodb": "^4.1.2",
+    "mongoose": "^6.0.7",
     "needle": "2.2.4",
     "node-esapi": "0.0.1",
     "serve-favicon": "^2.3.0",
     "swig": "^1.4.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.13.1",
+    "uuid": "^8.3.2"
   },
   "comments": {
     "//": "a9 insecure components"
@@ -41,10 +46,10 @@
   "devDependencies": {
     "async": "^2.0.0-rc.4",
     "cross-env": "^7.0.2",
-    "cypress": "^3.3.1",
-    "grunt": "^1.0.1",
+    "cypress": "^8.4.1",
+    "grunt": "^1.4.1",
     "grunt-cli": "^1.2.0",
-    "grunt-concurrent": "^2.3.0",
+    "grunt-concurrent": "^3.0.0",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-env": "latest",
@@ -52,12 +57,12 @@
     "grunt-jsbeautifier": "^0.2.12",
     "grunt-mocha-test": "^0.12.7",
     "grunt-npm-install": "^0.3.0",
-    "grunt-retire": "^0.3.12",
-    "mocha": "^2.4.5",
-    "nodemon": "^1.19.1",
-    "selenium-webdriver": "^2.53.2",
+    "grunt-retire": "^1.0.9",
+    "mocha": "^9.1.1",
+    "nodemon": "^2.0.12",
+    "selenium-webdriver": "^3.6.0",
     "should": "^8.3.1",
-    "zaproxy": "^0.2.0"
+    "zaproxy": "^1.0.1"
   },
   "repository": "https://github.com/OWASP/NodejsGoat",
   "license": "Apache 2.0"

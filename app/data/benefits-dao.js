@@ -1,5 +1,7 @@
 /* The BenefitsDAO must be constructed with a connected database object */
-function BenefitsDAO(db) {
+const User = require('../schemas/User');
+
+function BenefitsDAO() {
 
     "use strict";
 
@@ -7,36 +9,25 @@ function BenefitsDAO(db) {
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof BenefitsDAO)) {
         console.log("Warning: BenefitsDAO constructor called without 'new' operator");
-        return new BenefitsDAO(db);
+        return new BenefitsDAO();
     }
 
-    const usersCol = db.collection("users");
+    /* const usersCol = db.collection("users"); */
+    /* const userDAO = new UserDAO(); */
 
-    this.getAllNonAdminUsers = callback => {
-        usersCol.find({
-            "isAdmin": {
-                $ne: true
-            }
-        }).toArray((err, users) => callback(null, users));
+    this.getAllNonAdminUsers = () => {
+        return User.find({ "isAdmin": { $ne: true } }).exec();
+        /* .toArray((err, users) => callback(null, users)); */
     };
 
-    this.updateBenefits = (userId, startDate, callback) => {
-        usersCol.update({
-                _id: parseInt(userId)
-            }, {
-                $set: {
-                    benefitStartDate: startDate
-                }
-            },
-            (err, result) => {
-                if (!err) {
-                    console.log("Updated benefits");
-                    return callback(null, result);
-                }
-
-                return callback(err, null);
+    this.updateBenefits = (userId, startDate) => {
+        return User.updateOne({
+            userId,
+        }, {
+            $set: {
+                benefitStartDate: startDate
             }
-        );
+        }).exec();
     };
 }
 

@@ -5,11 +5,11 @@ const {
 } = require("../../config/config");
 
 /* The SessionHandler must be constructed with a connected db */
-function SessionHandler(db) {
+function SessionHandler() {
     "use strict";
 
-    const userDAO = new UserDAO(db);
-    const allocationsDAO = new AllocationsDAO(db);
+    const userDAO = new UserDAO();
+    const allocationsDAO = new AllocationsDAO();
 
     const prepareUserData = (user, next) => {
         // Generate random allocations
@@ -17,9 +17,10 @@ function SessionHandler(db) {
         const funds = Math.floor((Math.random() * 40) + 1);
         const bonds = 100 - (stocks + funds);
 
-        allocationsDAO.update(user._id, stocks, funds, bonds, (err) => {
+        return allocationsDAO.update(user._id, stocks, funds, bonds);
+        /* allocationsDAO.update(user._id, stocks, funds, bonds, (err) => {
             if (err) return next(err);
-        });
+        }); */
     };
 
     this.isAdminUserMiddleware = (req, res, next) => {
@@ -44,72 +45,98 @@ function SessionHandler(db) {
             userName: "",
             password: "",
             loginError: "",
+            csrftoken: res.locals.csrfToken,
             environmentalScripts
         });
     };
 
-    this.handleLoginRequest = (req, res, next) => {
+    this.handleLoginRequest = async (req, res, next) => {
+        console.log('**** CALLING handleLoginRequest ****');
         const {
             userName,
             password
         } = req.body
-        userDAO.validateLogin(userName, password, (err, user) => {
-            const errorMessage = "Invalid username and/or password";
-            const invalidUserNameErrorMessage = "Invalid username";
-            const invalidPasswordErrorMessage = "Invalid password";
-            if (err) {
-                if (err.noSuchUser) {
-                    console.log('Error: attempt to login with invalid user: ', userName);
+        /** TODO: Create a helper to validate the user input data */
 
-                    // Fix for A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
-                    // that could result in log forging:
-                    // - Step 1: Require a module that supports encoding
-                    // const ESAPI = require('node-esapi');
-                    // - Step 2: Encode the user input that will be logged in the correct context
-                    // following are a few examples:
-                    // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForHTML(userName));
-                    // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForJavaScript(userName));
-                    // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForURL(userName));
-                    // or if you know that this is a CRLF vulnerability you can target this specifically as follows:
-                    // console.log('Error: attempt to login with invalid user: %s', userName.replace(/(\r\n|\r|\n)/g, '_'));
-
-                    return res.render("login", {
-                        userName: userName,
-                        password: "",
-                        loginError: invalidUserNameErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
-                        environmentalScripts
-                    });
-                } else if (err.invalidPassword) {
-                    return res.render("login", {
-                        userName: userName,
-                        password: "",
-                        loginError: invalidPasswordErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
-                        environmentalScripts
-                    });
-                } else {
-                    return next(err);
-                }
+        /* userDAO.validateLogin(userName, password, (err, user) => { */
+        try {
+            const user = await userDAO.validateLogin(userName, password);
+            if (!user) {
+                const errorMessage = "Invalid username and/or password";
+                return res.render("login", {
+                    userName: userName,
+                    password: "",
+                    loginError: errorMessage,
+                    environmentalScripts
+                });
             }
-
-            // A2-Broken Authentication and Session Management
-            // Upon login, a security best practice with regards to cookies session management
-            // would be to regenerate the session id so that if an id was already created for
-            // a user on an insecure medium (i.e: non-HTTPS website or otherwise), or if an
-            // attacker was able to get their hands on the cookie id before the user logged-in,
-            // then the old session id will render useless as the logged-in user with new privileges
-            // holds a new session id now.
-
-            // Fix the problem by regenerating a session in each login
-            // by wrapping the below code as a function callback for the method req.session.regenerate()
-            // i.e:
-            // `req.session.regenerate(() => {})`
-            req.session.userId = user._id;
+            req.session.userId = user.userId;
             return res.redirect(user.isAdmin ? "/benefits" : "/dashboard")
-        });
+        } catch (error) {
+            return res.render("login", {
+                userName: userName,
+                password: "",
+                loginError: error.errorMessage,
+                environmentalScripts
+            });
+        }
+        /** TODO: REMOVE ERROR MESSAGES */
+        /* const invalidUserNameErrorMessage = "Invalid username";
+        const invalidPasswordErrorMessage = "Invalid password";
+        if (err) {
+            if (err.noSuchUser) {
+                console.log('Error: attempt to login with invalid user: ', userName);
+
+                // Fix for A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
+                // that could result in log forging:
+                // - Step 1: Require a module that supports encoding
+                // const ESAPI = require('node-esapi');
+                // - Step 2: Encode the user input that will be logged in the correct context
+                // following are a few examples:
+                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForHTML(userName));
+                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForJavaScript(userName));
+                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForURL(userName));
+                // or if you know that this is a CRLF vulnerability you can target this specifically as follows:
+                // console.log('Error: attempt to login with invalid user: %s', userName.replace(/(\r\n|\r|\n)/g, '_'));
+
+                return res.render("login", {
+                    userName: userName,
+                    password: "",
+                    loginError: invalidUserNameErrorMessage,
+                    //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
+                    // loginError: errorMessage
+                    environmentalScripts
+                });
+            } else if (err.invalidPassword) {
+                return res.render("login", {
+                    userName: userName,
+                    password: "",
+                    loginError: invalidPasswordErrorMessage,
+                    //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
+                    // loginError: errorMessage
+                    environmentalScripts
+                });
+            } else {
+                return next(err);
+            }
+        } */
+
+        // A2-Broken Authentication and Session Management
+        // Upon login, a security best practice with regards to cookies session management
+        // would be to regenerate the session id so that if an id was already created for
+        // a user on an insecure medium (i.e: non-HTTPS website or otherwise), or if an
+        // attacker was able to get their hands on the cookie id before the user logged-in,
+        // then the old session id will render useless as the logged-in user with new privileges
+        // holds a new session id now.
+
+        // Fix the problem by regenerating a session in each login
+        // by wrapping the below code as a function callback for the method req.session.regenerate()
+        // i.e:
+        // `req.session.regenerate(() => {})`
+        /** TODO: USE REQ.SESSION.REGENERATE? */
+        /* req.session.userId = user._id;
+        return res.redirect(user.isAdmin ? "/benefits" : "/dashboard") */
+        /* }); */
     };
 
     this.displayLogoutPage = (req, res) => {
@@ -180,7 +207,7 @@ function SessionHandler(db) {
         return true;
     }
 
-    this.handleSignup = (req, res, next) => {
+    this.handleSignup = async (req, res, next) => {
 
         const {
             email,
@@ -191,6 +218,8 @@ function SessionHandler(db) {
             verify
         } = req.body;
 
+        //VALIDATE THE PARAMS
+
         // set these up in case we have an error case
         const errors = {
             "userName": userName,
@@ -199,11 +228,12 @@ function SessionHandler(db) {
 
         if (validateSignup(userName, firstName, lastName, password, verify, email, errors)) {
 
-            userDAO.getUserByUserName(userName, (err, user) => {
+            try {
+                const isTheUserExists = await userDAO.getUserByUserName(userName);
 
-                if (err) return next(err);
-
-                if (user) {
+                /* if (err) return next(err); */
+                console.log('isTheUserExists ---> ', isTheUserExists);
+                if (isTheUserExists) {
                     errors.userNameError = "User name already in use. Please choose another";
                     return res.render("signup", {
                         ...errors,
@@ -211,33 +241,40 @@ function SessionHandler(db) {
                     });
                 }
 
-                userDAO.addUser(userName, firstName, lastName, password, email, (err, user) => {
-
+                /* userDAO.addUser(userName, firstName, lastName, password, email, (err, user) => { */
+                const savedUser = await userDAO.addUser(userName, firstName, lastName, password, email);
+                const { firstName, lastName, userId } = savedUser;
+                /* if (err) return next(err);
+*/
+                //prepare data for the user
+                console.log('savedUser ---> ', savedUser);
+                await prepareUserData(savedUser, next);
+                /*
+                sessionDAO.startSession(user._id, (err, sessionId) => {
                     if (err) return next(err);
-
-                    //prepare data for the user
-                    prepareUserData(user, next);
-                    /*
-                    sessionDAO.startSession(user._id, (err, sessionId) => {
-                        if (err) return next(err);
-                        res.cookie("session", sessionId);
-                        req.session.userId = user._id;
-                        return res.render("dashboard", { ...user, environmentalScripts });
-                    });
-                    */
-                    req.session.regenerate(() => {
-                        req.session.userId = user._id;
-                        // Set userId property. Required for left nav menu links
-                        user.userId = user._id;
-
-                        return res.render("dashboard", {
-                            ...user,
-                            environmentalScripts
-                        });
-                    });
-
+                    res.cookie("session", sessionId);
+                    req.session.userId = user._id;
+                    return res.render("dashboard", { ...user, environmentalScripts });
                 });
-            });
+                */
+                req.session.regenerate(() => {
+                    req.session.userId = savedUser.userId;
+                    // Set userId property. Required for left nav menu links
+                    /* user.userId = user._id; */
+
+                    return res.render("dashboard", {
+                        firstName,
+                        lastName,
+                        userId,
+                        environmentalScripts
+                    });
+                });
+
+                /* }); */
+            } catch (error) {
+                console.log('there was an error to sing up', error);
+                if (error) return next(error);
+            }
         } else {
             console.log("user did not validate");
             return res.render("signup", {
@@ -247,24 +284,41 @@ function SessionHandler(db) {
         }
     };
 
-    this.displayWelcomePage = (req, res, next) => {
-        let userId;
-
-        if (!req.session.userId) {
+    this.displayWelcomePage = async (req, res, next) => {
+        const { userId } = req.session;
+        if (!userId) {
             console.log("welcome: Unable to identify user...redirecting to login");
             return res.redirect("/login");
         }
 
-        userId = req.session.userId;
-
-        userDAO.getUserById(userId, (err, doc) => {
+        /* userId = req.session.userId; */
+        // TODO: validate userId
+        /* userDAO.getUserById(userId, (err, doc) => {
             if (err) return next(err);
             doc.userId = userId;
             return res.render("dashboard", {
                 ...doc,
                 environmentalScripts
             });
-        });
+        }); */
+        try {
+            const user = await userDAO.getUserById(userId);
+            if (user) {
+                console.log('user -----> ', user);
+                return res.render("dashboard", {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    userId: user.userId,
+                    /* csrftoken: res.locals.csrfToken, */
+                    /* firstName: "HOla",
+                    userId: 1234, */
+                    environmentalScripts
+                });
+            }
+            
+        } catch (error) {
+            console.log('There was an error to displayWelcomePage', error);
+        }
     };
 }
 

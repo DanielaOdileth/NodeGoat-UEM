@@ -12,6 +12,11 @@ services:
 
   mongo:
     image: mongo:latest
-    user: mongodb
+    volumes: 
+      - mongodb:/data/db
+    ports:
+      - 27017:27017
     expose:
       - 27017
+volumes:
+  mongodb:

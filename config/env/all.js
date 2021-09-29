@@ -1,5 +1,6 @@
 // default app configuration
 const port = process.env.PORT || 4000;
+/** TODO CREATE .env to get the URI */
 let db = process.env.MONGODB_URI || "mongodb://localhost:27017/nodegoat";
 
 module.exports = {

@@ -62,6 +62,7 @@ const index = (app, db) => {
      */
 
     // Allocations Page
+    // TODO: FIX
     app.get("/allocations/:userId", isLoggedIn, allocationsHandler.displayAllocations);
 
     // Memos Page

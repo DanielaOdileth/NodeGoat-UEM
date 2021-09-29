@@ -1,13 +1,13 @@
-const ResearchDAO = require("../data/research-dao").ResearchDAO;
+const { ResearchDAO } = require("../data/research-dao");
 const needle = require("needle");
 const {
     environmentalScripts
 } = require("../../config/config");
 
-function ResearchHandler(db) {
+function ResearchHandler() {
     "use strict";
 
-    const researchDAO = new ResearchDAO(db);
+    const researchDAO = new ResearchDAO();
 
     this.displayResearch = (req, res) => {
 

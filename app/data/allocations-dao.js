@@ -1,7 +1,8 @@
 const UserDAO = require("./user-dao").UserDAO;
-
+const Allocation = require('../schemas/Allocation');
+const { ObjectId } = require('mongodb');
 /* The AllocationsDAO must be constructed with a connected database object */
-const AllocationsDAO = function(db){
+const AllocationsDAO = function (db) {
 
     "use strict";
 
@@ -9,104 +10,96 @@ const AllocationsDAO = function(db){
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof AllocationsDAO)) {
         console.log("Warning: AllocationsDAO constructor called without 'new' operator");
-        return new AllocationsDAO(db);
+        return new AllocationsDAO();
     }
 
-    const allocationsCol = db.collection("allocations");
-    const userDAO = new UserDAO(db);
+    /* const allocationsCol = db.collection("allocations"); */
+    const userDAO = new UserDAO();
 
-    this.update = (userId, stocks, funds, bonds, callback) => {
-        const parsedUserId = parseInt(userId);
+    this.update = async (userId, stocks, funds, bonds) => {
+        /* const parsedUserId = parseInt(userId); */
 
         // Create allocations document
         const allocations = {
-            userId: userId,
+            userId,
             stocks: stocks,
             funds: funds,
             bonds: bonds
         };
 
-        allocationsCol.update({
-            userId: parsedUserId
-        }, allocations, {
-            upsert: true
-        }, err => {
+        try {
 
-            if (!err) {
+            const insertAllocation = await Allocation.updateOne({ userId }, allocations, { upsert: true }).exec();
+
+            if (insertAllocation) {
 
                 console.log("Updated allocations");
+                const user = await userDAO.getUserById(userId);
 
-                userDAO.getUserById(userId, (err, user) => {
+                // add user details
+                allocations.username = user.username;
+                allocations.firstName = user.firstName;
+                allocations.lastName = user.lastName;
 
-                    if (err) return callback(err, null);
-
-                    // add user details
-                    allocations.userId = userId;
-                    allocations.userName = user.userName;
-                    allocations.firstName = user.firstName;
-                    allocations.lastName = user.lastName;
-
-                    return callback(null, allocations);
-                });
+                return allocations;
+                /* }); */
             }
-
-            return callback(err, null);
-        });
+        } catch (error) {
+            console.log('there was an error to update user allocations', error);
+            return error;
+        }
     };
 
-    this.getByUserIdAndThreshold = (userId, threshold, callback) => {
-        const parsedUserId = parseInt(userId);
+    this.getByUserIdAndThreshold = async (userId, threshold) => {
+        /*  const parsedUserId = parseInt(userId); */
+        try {
+            const user = await userDAO.getUserById(userId);
+            console.log('user ---> getByUserIdAndThreshold', user);
+            const searchCriteria = () => {
 
-        const searchCriteria = () => {
-
-            if (threshold) {
-                /*
-                // Fix for A1 - 2 NoSQL Injection - escape the threshold parameter properly
-                // Fix this NoSQL Injection which doesn't sanitze the input parameter 'threshold' and allows attackers
-                // to inject arbitrary javascript code into the NoSQL query:
-                // 1. 0';while(true){}'
-                // 2. 1'; return 1 == '1
-                // Also implement fix in allocations.html for UX.                             
-                const parsedThreshold = parseInt(threshold, 10);
-                
-                if (parsedThreshold >= 0 && parsedThreshold <= 99) {
-                    return {$where: `this.userId == ${parsedUserId} && this.stocks > ${parsedThreshold}`};
-                }
-                throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
-                */
-                return {
-                    $where: `this.userId == ${parsedUserId} && this.stocks > '${threshold}'`
-                };
-            }
-            return {
-                userId: parsedUserId
-            };
-        }
-
-        allocationsCol.find(searchCriteria()).toArray((err, allocations) => {
-            if (err) return callback(err, null);
-            if (!allocations.length) return callback("ERROR: No allocations found for the user", null);
-
-            let doneCounter = 0;
-            const userAllocations = [];
-
-            allocations.forEach( alloc => {
-                userDAO.getUserById(alloc.userId, (err, user) => {
-                    if (err) return callback(err, null);
-
-                    alloc.userName = user.userName;
-                    alloc.firstName = user.firstName;
-                    alloc.lastName = user.lastName;
-
-                    doneCounter += 1;
-                    userAllocations.push(alloc);
-
-                    if (doneCounter === allocations.length) {
-                        callback(null, userAllocations);
+                if (threshold) {
+                    /*
+                    // Fix for A1 - 2 NoSQL Injection - escape the threshold parameter properly
+                    // Fix this NoSQL Injection which doesn't sanitze the input parameter 'threshold' and allows attackers
+                    // to inject arbitrary javascript code into the NoSQL query:
+                    // 1. 0';while(true){}'
+                    // 2. 1'; return 1 == '1
+                    // Also implement fix in allocations.html for UX.                             
+                    const parsedThreshold = parseInt(threshold, 10);
+                    
+                    if (parsedThreshold >= 0 && parsedThreshold <= 99) {
+                        return {$where: `this.userId == ${parsedUserId} && this.stocks > ${parsedThreshold}`};
                     }
-                });
+                    throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
+                    */
+                    /*  where: `userId == ${user._id} && stocks > '${threshold}'` */
+                    return { userId: user._id, stocks: { $gte: threshold } }
+                }
+                return { userId: user._id };
+            }
+
+            const allocations = await Allocation.find(searchCriteria());
+
+            console.log('allocations ----> ', allocations);
+
+            if (!allocations.length) {
+                console.log("ERROR: No allocations found for the user");
+                return [];
+            }
+
+            /* let doneCounter = 0;
+            const userAllocations = []; */
+
+            /* const userAllocations = await Promise.all(allocations.forEach(async alloc => { */
+            const userAllocations = allocations.map(allocation => {
+                allocation.firstName = user.firstName;
+                allocation.lastName = user.lastName;
+                return allocation;
             });
-        });
+            return userAllocations;
+        } catch (error) {
+            console.log('There was an error to getByUserIdAndThreshold', error);
+        }
     };
 
 }

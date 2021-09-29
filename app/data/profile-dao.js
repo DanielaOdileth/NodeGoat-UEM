@@ -1,5 +1,9 @@
 /* The ProfileDAO must be constructed with a connected database object */
-function ProfileDAO(db) {
+const { UserDAO } = require("./user-dao");
+const User = require('../schemas/User');
+const { ObjectId } = require('mongodb');
+
+function ProfileDAO() {
 
     "use strict";
 
@@ -7,10 +11,11 @@ function ProfileDAO(db) {
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof ProfileDAO)) {
         console.log("Warning: ProfileDAO constructor called without 'new' operator");
-        return new ProfileDAO(db);
+        return new ProfileDAO();
     }
 
-    const users = db.collection("users");
+    const userDAO = new UserDAO();
+    /* const users = db.collection("users"); */
 
     /* Fix for A6 - Sensitive Data Exposure
 
@@ -39,7 +44,7 @@ function ProfileDAO(db) {
     };
     */
 
-    this.updateUser = (userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting, callback) => {
+    this.updateUser = (userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting) => {
 
         // Create user document
         const user = {};
@@ -50,7 +55,7 @@ function ProfileDAO(db) {
             user.lastName = lastName;
         }
         if (address) {
-            user.address = address;
+            user.address = new Date(address);
         }
         if (bankAcc) {
             user.bankAcc = bankAcc;
@@ -75,38 +80,23 @@ function ProfileDAO(db) {
         }
         */
 
-        users.update({
-                _id: parseInt(userId)
-            }, {
-                $set: user
-            },
-            err => {
-                if (!err) {
-                    console.log("Updated user profile");
-                    return callback(null, user);
-                }
-
-                return callback(err, null);
-            }
-        );
+        return User.updateOne({ userId: userId }, { $set: user }).exec();
     };
 
-    this.getByUserId = (userId, callback) => {
-        users.findOne({
-                _id: parseInt(userId)
-            },
-            (err, user) => {
-                if (err) return callback(err, null);
-                /*
-                // Fix for A6 - Sensitive Data Exposure
-                // Decrypt ssn and DOB values to display to user
-                user.ssn = user.ssn ? decrypt(user.ssn) : "";
-                user.dob = user.dob ? decrypt(user.dob) : "";
-                */
+    this.getByUserId = (userId) => {
+        return userDAO.getUserById(userId);
+        /* (err, user) => {
+            if (err) return callback(err, null); */
+        /*
+        // Fix for A6 - Sensitive Data Exposure
+        // Decrypt ssn and DOB values to display to user
+        user.ssn = user.ssn ? decrypt(user.ssn) : "";
+        user.dob = user.dob ? decrypt(user.dob) : "";
+        */
 
-                callback(null, user);
-            }
-        );
+        /* callback(null, user); */
+        /* } */
+        /* ); */
     };
 }
 

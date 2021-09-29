@@ -3,18 +3,26 @@
 const express = require("express");
 const favicon = require("serve-favicon");
 const bodyParser = require("body-parser");
+const csrf = require('csurf')
 const session = require("express-session");
 // const csrf = require('csurf');
 const consolidate = require("consolidate"); // Templating library adapter for Express
 const swig = require("swig");
-// const helmet = require("helmet");
-const MongoClient = require("mongodb").MongoClient; // Driver for connecting to MongoDB
+const helmet = require("helmet");
+
+/* const MongoClient = require("mongodb").MongoClient; */ // Driver for connecting to MongoDB
+const cors = require('cors');
+const mongoose = require('mongoose');
+const compression = require('compression');
+const cookieParser = require('cookie-parser')
+
 const http = require("http");
 const marked = require("marked");
 //const nosniff = require('dont-sniff-mimetype');
-const app = express(); // Web framework to handle routing requests
+/* const app = express(); */ // Web framework to handle routing requests
 const routes = require("./app/routes");
 const { port, db, cookieSecret } = require("./config/config"); // Application config properties
+
 /*
 // Fix for A6-Sensitive Data Exposure
 // Load keys for establishing secure HTTPS connection
@@ -27,7 +35,7 @@ const httpsOptions = {
 };
 */
 
-MongoClient.connect(db, (err, db) => {
+mongoose.connect(db, (err, db) => {
     if (err) {
         console.log("Error: DB: connect");
         console.log(err);
@@ -35,6 +43,8 @@ MongoClient.connect(db, (err, db) => {
     }
     console.log(`Connected to the database`);
 
+    const app = express();
+    app.use(helmet());
     /*
     // Fix for A5 - Security MisConfig
     // TODO: Review the rest of helmet options, like "xssFilter"
@@ -61,18 +71,26 @@ MongoClient.connect(db, (err, db) => {
     // app.use(helmet.xssFilter({ setOnOldIE: true }));
 
     // Forces browser to only use the Content-Type set in the response header instead of sniffing or guessing it
+    // TODO -----> check
     app.use(nosniff());
     */
 
     // Adding/ remove HTTP Headers for security
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json({ limit: '16mb' }));
+    app.use(compression())
+
+    app.use(cors());
+
+    /** -----> */
     app.use(favicon(__dirname + "/app/assets/favicon.ico"));
 
     // Express middleware to populate "req.body" so we can access POST variables
-    app.use(bodyParser.json());
+    /* app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({
         // Mandatory in Express v4
         extended: false
-    }));
+    })); */
 
     // Enable session management using express middleware
     app.use(session({
@@ -80,6 +98,14 @@ MongoClient.connect(db, (err, db) => {
         //    return genuuid() // use UUIDs for session IDs
         //},
         secret: cookieSecret,
+        name: "sessionId",
+        key: "sessionId2",
+        cookie: {
+            secure: false,
+            httpOnly: true,
+            sameSite: true,
+            maxAge: 600000
+        },
         // Both mandatory in Express v4
         saveUninitialized: true,
         resave: true
@@ -101,16 +127,16 @@ MongoClient.connect(db, (err, db) => {
 
     }));
 
-    /*
+
     // Fix for A8 - CSRF
+    // ------> 
     // Enable Express csrf protection
     app.use(csrf());
     // Make csrf token available in templates
-    app.use((req, res, next) => {
+    /* app.use((req, res, next) => {
         res.locals.csrftoken = req.csrfToken();
         next();
-    });
-    */
+    }); */
 
     // Register templating engine
     app.engine(".html", consolidate.swig);
@@ -118,31 +144,46 @@ MongoClient.connect(db, (err, db) => {
     app.set("views", `${__dirname}/app/views`);
     app.use(express.static(`${__dirname}/app/assets`));
 
+    /* app.use(csrf({ cookie: false })); */
+    app.use((req, res, next) => {
+        const token = req.csrfToken();
+        res.cookie('XSRF-TOKEN', token);
+        res.locals.csrfToken = token;
+        res.locals.token = req.session._csrf;
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000');
+        next();
+    });
+    /* app.use((req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000');
+        res.locals.csrftoken = req.csrfToken();
+        next();
+    }) */
 
     // Initializing marked library
     // Fix for A9 - Insecure Dependencies
-    marked.setOptions({
-        sanitize: true
-    });
-    app.locals.marked = marked;
+     marked.setOptions({
+         sanitize: true
+     });
+     app.locals.marked = marked;
 
     // Application routes
     routes(app, db);
 
     // Template system setup
-    swig.setDefaults({
+    /* swig.setDefaults({
         // Autoescape disabled
-        autoescape: false
-        /*
+        // autoescape: false
         // Fix for A3 - XSS, enable auto escaping
-        autoescape: true // default value
-        */
-    });
+        // autoescape: true // default value
+    }); */
 
     // Insecure HTTP connection
-    http.createServer(app).listen(port, () => {
+    /* http.createServer(app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
-    });
+    }); */
+    app.listen(4000, () => {
+        console.log(`Express http server listening on port ${port}`);
+    })
 
     /*
     // Fix for A6-Sensitive Data Exposure

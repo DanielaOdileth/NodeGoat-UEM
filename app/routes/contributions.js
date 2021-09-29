@@ -1,20 +1,36 @@
-const ContributionsDAO = require("../data/contributions-dao").ContributionsDAO;
+const { ContributionsDAO } = require("../data/contributions-dao");
 const {
     environmentalScripts
 } = require("../../config/config");
 
 /* The ContributionsHandler must be constructed with a connected db */
-function ContributionsHandler(db) {
+function ContributionsHandler() {
     "use strict";
 
-    const contributionsDAO = new ContributionsDAO(db);
+    const contributions = new ContributionsDAO();
 
-    this.displayContributions = (req, res, next) => {
-        const {
-            userId
-        } = req.session;
+    this.displayContributions = async (req, res, next) => {
+        const { userId } = req.session;
 
-        contributionsDAO.getByUserId(userId, (error, contrib) => {
+        try {
+            const contributionsResponse = await contributions.getByUserId(userId);
+            /* const { firstName, lastName } = contributionsResponse; */
+            contributionsResponse.userId = userId;
+            contributionsResponse.csrftoken = res.locals.csrfToken;
+            /* contrib.userId = userId; //set for nav menu items */
+            return res.render("contributions", {
+                /* firstName,
+                lastName,
+                userId,
+                csrftoken: res.locals.csrfToken, */
+                ...contributionsResponse,
+                environmentalScripts
+            });
+        } catch (error) {
+            console.log('There was an error to displayContributions', error);
+        }
+
+        /* contributionsDAO.getByUserId(userId, (error, contrib) => {
             if (error) return next(error);
 
             contrib.userId = userId; //set for nav menu items
@@ -22,10 +38,10 @@ function ContributionsHandler(db) {
                 ...contrib,
                 environmentalScripts
             });
-        });
+        }); */
     };
 
-    this.handleContributionsUpdate = (req, res, next) => {
+    this.handleContributionsUpdate = async (req, res, next) => {
 
         /*jslint evil: true */
         // Insecure use of eval() to parse inputs
@@ -39,9 +55,7 @@ function ContributionsHandler(db) {
         const afterTax = parseInt(req.body.afterTax);
         const roth = parseInt(req.body.roth);
         */
-        const {
-            userId
-        } = req.session;
+        const { userId } = req.session;
 
         //validate contributions
         const validations = [isNaN(preTax), isNaN(afterTax), isNaN(roth), preTax < 0, afterTax < 0, roth < 0]
@@ -62,7 +76,19 @@ function ContributionsHandler(db) {
             });
         }
 
-        contributionsDAO.update(userId, preTax, afterTax, roth, (err, contributions) => {
+        try {
+            const contributionsUpdated =  await contributions.update(userId, preTax, afterTax, roth)
+            contributionsUpdated.updateSuccess = true;
+            contributionsUpdated.csrftoken = res.locals.csrfToken;
+            console.log('contributionsUpdated ----> ', contributionsUpdated);
+            return res.render("contributions", {
+                ...contributionsUpdated,
+                environmentalScripts
+            });
+        } catch (error) {
+            console.log('there was an error to handleContributionsUpdate', error);
+        }
+        /* contributionsDAO.update(userId, preTax, afterTax, roth, (err, contributions) => {
 
             if (err) return next(err);
 
@@ -71,7 +97,7 @@ function ContributionsHandler(db) {
                 ...contributions,
                 environmentalScripts
             });
-        });
+        }); */
 
     };
 
