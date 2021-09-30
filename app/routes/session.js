@@ -53,9 +53,22 @@ function SessionHandler() {
             userName,
             password
         } = req.body
-        /** TODO: Create a helper to validate the user input data */
 
-        /* userDAO.validateLogin(userName, password, (err, user) => { */
+        const { isValid } = validateCreateUserParams({
+            userName,
+            password
+        });
+
+        if (!isValid) {
+            console.log("user login not validate");
+            return res.render("login", {
+                userName: userName,
+                password: "",
+                loginError: "Please provide valid data",
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
+        }
         try {
             const user = await userDAO.validateLogin(userName, password);
             if (!user) {
@@ -68,6 +81,7 @@ function SessionHandler() {
                     environmentalScripts
                 });
             }
+            req.session.regenerate(() => { })
             req.session.userId = user.userId;
             return res.redirect(user.isAdmin ? "/benefits" : "/dashboard")
         } catch (error) {
@@ -190,6 +204,14 @@ function SessionHandler() {
                 errors.userNameError = "User name already in use. Please choose another";
                 return res.render("signup", {
                     ...errors,
+                    csrftoken: res.locals.csrfToken,
+                    environmentalScripts
+                });
+            }
+
+            if(password !== verify) {
+                return res.render("signup", {
+                    passwordError: 'verify password and password does not match',
                     csrftoken: res.locals.csrfToken,
                     environmentalScripts
                 });
