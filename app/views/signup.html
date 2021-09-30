@@ -18,9 +18,9 @@
 
     <!-- Add custom CSS here -->
     <style type="text/css">
-    #wrapper {
-        padding-left: 0;
-    }
+        #wrapper {
+            padding-left: 0;
+        }
     </style>
 
 </head>
@@ -54,7 +54,12 @@
                 <div class="col-lg-12">
                     <div class="alert alert-dismissable alert-danger">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <p>{{userNameError}}{{firstNameError}}{{lastNameError}}{{passwordError}}{{verifyError}}{{emailError}}</p>
+                        <p>{{userNameError}} </p>
+                        <p>{{firstNameError}} </p>
+                        <p>{{lastNameError}}</p>
+                        <p>{{passwordError}}</p>
+                        <p>{{verifyError}}</p>
+                        <p>{{emailError}}</p>
                     </div>
                 </div>
             </div>
@@ -72,34 +77,56 @@
                             <form method="post" role="form" method="post">
                                 <div class="form-group">
                                     <label for="userName">User Name</label>
-                                    <input type="text" class="form-control" id="userName" value="{{userName}}" name="userName" placeholder="Enter user name">
+                                    <input type="text" class="form-control" id="userName" value="{{userName}}"
+                                        name="userName" placeholder="Enter user name" pattern="^[a-zA-Z0-9-._]{3,10}$"
+                                        oninvalid="setCustomValidity('Please enter a valid userame, valid characters: numbers, letters, underscore, dot, dash. Min length: 3, Max length: 10')"
+                                        oninput="setCustomValidity('')" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label for="firstName">First Name</label>
-                                    <input type="text" class="form-control" id="firstName" value="{{firstName}}" name="firstName" placeholder="Enter first name">
+                                    <input type="text" class="form-control" id="firstName" value="{{firstName}}"
+                                        name="firstName" placeholder="Enter first name"
+                                        pattern="^([a-zA-ZÀ-ÿ][a-zA-zÀ-ÿ ']{2,20}$)"
+                                        oninvalid="setCustomValidity('Please enter a valid name, valid characters: accent mark, spaces and letters')"
+                                        oninput="setCustomValidity('')" required />
                                 </div>
 
 
                                 <div class="form-group">
                                     <label for="lastName">Last Name</label>
-                                    <input type="text" class="form-control" id="lastName" value="{{lastName}}" name="lastName" placeholder="Enter last name">
+                                    <input type="text" class="form-control" id="lastName" value="{{lastName}}"
+                                        name="lastName" placeholder="Enter last name"
+                                        pattern="^([a-zA-ZÀ-ÿ][a-zA-zÀ-ÿ ']{2,20}$)"
+                                        oninvalid="setCustomValidity('Please enter a valid last name, valid characters: accent mark, spaces and letters')"
+                                        oninput="setCustomValidity('')" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label for="lastname">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" value="{{password}}" placeholder="Enter password">
+                                    <input type="password" class="form-control" id="password" name="password"
+                                        value="{{password}}" placeholder="Enter password"
+                                        pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$"
+                                        oninvalid="setCustomValidity('Please enter a valid password, at least 8 characters with numbers and both lowercase and uppercase letters.')"
+                                        oninput="setCustomValidity('')" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label for="verify">Verify Password</label>
-                                    <input type="password" class="form-control" id="verify" name="verify" value="{{verify}}" placeholder="Enter password">
+                                    <input type="password" class="form-control" id="verify" name="verify"
+                                        value="{{verify}}" placeholder="Enter password"
+                                        pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$"
+                                        oninvalid="setCustomValidity('Please enter a valid password, at least 8 characters with numbers and both lowercase and uppercase letters.')"
+                                        oninput="setCustomValidity('')" required />
                                 </div>
 
 
                                 <div class="form-group">
                                     <label for="verify">Email (Optional)</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="{{email}}" placeholder="Enter email">
+                                    <input type="email" class="form-control" id="email" name="email" value="{{email}}"
+                                        placeholder="Enter email" pattern="^[\S]+@[\S]+\.[\S]+$"
+                                        oninvalid="setCustomValidity('Please enter a valid email')"
+                                        oninput="setCustomValidity('')" />
                                 </div>
                                 <input type="hidden" name="_csrf" value="{{csrftoken}}"></input>
                                 <button type="submit" class="btn btn-primary">Submit</button>

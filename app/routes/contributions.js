@@ -15,15 +15,10 @@ function ContributionsHandler() {
 
         try {
             const contributionsResponse = await contributions.getByUserId(userId);
-            /* const { firstName, lastName } = contributionsResponse; */
             contributionsResponse.userId = userId;
             contributionsResponse.csrftoken = res.locals.csrfToken;
-            /* contrib.userId = userId; //set for nav menu items */
+
             return res.render("contributions", {
-                /* firstName,
-                lastName,
-                userId,
-                csrftoken: res.locals.csrfToken, */
                 ...contributionsResponse,
                 environmentalScripts
             });
@@ -35,16 +30,6 @@ function ContributionsHandler() {
                 environmentalScripts
             });
         }
-
-        /* contributionsDAO.getByUserId(userId, (error, contrib) => {
-            if (error) return next(error);
-
-            contrib.userId = userId; //set for nav menu items
-            return res.render("contributions", {
-                ...contrib,
-                environmentalScripts
-            });
-        }); */
     };
 
     this.handleContributionsUpdate = async (req, res, next) => {

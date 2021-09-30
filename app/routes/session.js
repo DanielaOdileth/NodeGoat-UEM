@@ -3,6 +3,7 @@ const AllocationsDAO = require("../data/allocations-dao").AllocationsDAO;
 const {
     environmentalScripts
 } = require("../../config/config");
+const { validateCreateUserParams } = require("../utils/validateParams");
 
 /* The SessionHandler must be constructed with a connected db */
 function SessionHandler() {
@@ -18,9 +19,6 @@ function SessionHandler() {
         const bonds = 100 - (stocks + funds);
 
         return allocationsDAO.update(user.userId, stocks, funds, bonds);
-        /* allocationsDAO.update(user._id, stocks, funds, bonds, (err) => {
-            if (err) return next(err);
-        }); */
     };
 
     this.isAdminUserMiddleware = (req, res, next) => {
@@ -146,7 +144,7 @@ function SessionHandler() {
 
     this.displaySignupPage = (req, res) => {
         res.render("signup", {
-            userName: "",
+            userNameError: "",
             password: "",
             passwordError: "",
             email: "",
@@ -157,57 +155,6 @@ function SessionHandler() {
             environmentalScripts
         });
     };
-
-    const validateSignup = (userName, firstName, lastName, password, verify, email, errors) => {
-
-        const USER_RE = /^.{1,20}$/;
-        const FNAME_RE = /^.{1,100}$/;
-        const LNAME_RE = /^.{1,100}$/;
-        const EMAIL_RE = /^[\S]+@[\S]+\.[\S]+$/;
-        const PASS_RE = /^.{1,20}$/;
-        /*
-        //Fix for A2-2 - Broken Authentication -  requires stronger password
-        //(at least 8 characters with numbers and both lowercase and uppercase letters.)
-        const PASS_RE =/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-        */
-
-        errors.userNameError = "";
-        errors.firstNameError = "";
-        errors.lastNameError = "";
-
-        errors.passwordError = "";
-        errors.verifyError = "";
-        errors.emailError = "";
-
-        if (!USER_RE.test(userName)) {
-            errors.userNameError = "Invalid user name.";
-            return false;
-        }
-        if (!FNAME_RE.test(firstName)) {
-            errors.firstNameError = "Invalid first name.";
-            return false;
-        }
-        if (!LNAME_RE.test(lastName)) {
-            errors.lastNameError = "Invalid last name.";
-            return false;
-        }
-        if (!PASS_RE.test(password)) {
-            errors.passwordError = "Password must be 8 to 18 characters" +
-                " including numbers, lowercase and uppercase letters.";
-            return false;
-        }
-        if (password !== verify) {
-            errors.verifyError = "Password must match";
-            return false;
-        }
-        if (email !== "") {
-            if (!EMAIL_RE.test(email)) {
-                errors.emailError = "Invalid email address";
-                return false;
-            }
-        }
-        return true;
-    }
 
     this.handleSignup = async (req, res, next) => {
 
@@ -220,67 +167,53 @@ function SessionHandler() {
             verify
         } = req.body;
 
-        //VALIDATE THE PARAMS
+        const { isValid, errors } = validateCreateUserParams({
+            email,
+            userName,
+            firstName,
+            lastName,
+            password,
+            verify
+        });
 
-        // set these up in case we have an error case
-        const errors = {
-            "userName": userName,
-            "email": email
-        };
-
-        if (validateSignup(userName, firstName, lastName, password, verify, email, errors)) {
-
-            try {
-                const isTheUserExists = await userDAO.getUserByUserName(userName);
-
-                /* if (err) return next(err); */
-                if (isTheUserExists) {
-                    errors.userNameError = "User name already in use. Please choose another";
-                    return res.render("signup", {
-                        ...errors,
-                        csrftoken: res.locals.csrfToken,
-                        environmentalScripts
-                    });
-                }
-
-                /* userDAO.addUser(userName, firstName, lastName, password, email, (err, user) => { */
-                const savedUser = await userDAO.addUser(userName, firstName, lastName, password, email);
-                const { firstName: newFirstName, lastName: newLastName, userId } = savedUser;
-                /* if (err) return next(err);
-*/
-                //prepare data for the user
-                await prepareUserData(savedUser, next);
-                /*
-                sessionDAO.startSession(user._id, (err, sessionId) => {
-                    if (err) return next(err);
-                    res.cookie("session", sessionId);
-                    req.session.userId = user._id;
-                    return res.render("dashboard", { ...user, environmentalScripts });
-                });
-                */
-                req.session.regenerate(() => {
-                    req.session.userId = savedUser.userId;
-                    // Set userId property. Required for left nav menu links
-                    /* user.userId = user._id; */
-
-                    return res.render("dashboard", {
-                        firstName: newFirstName,
-                        lastName: newLastName,
-                        userId,
-                        csrftoken: res.locals.csrfToken,
-                        environmentalScripts
-                    });
-                });
-
-                /* }); */
-            } catch (error) {
-                console.log('there was an error to sing up', error);
-                if (error) return next(error);
-            }
-        } else {
+        if (!isValid) {
             console.log("user did not validate");
             return res.render("signup", {
                 ...errors,
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
+        }
+        try {
+            const isTheUserExists = await userDAO.getUserByUserName(userName);
+            if (isTheUserExists) {
+                errors.userNameError = "User name already in use. Please choose another";
+                return res.render("signup", {
+                    ...errors,
+                    csrftoken: res.locals.csrfToken,
+                    environmentalScripts
+                });
+            }
+
+            const savedUser = await userDAO.addUser(userName, firstName, lastName, password, email);
+            const { firstName: newFirstName, lastName: newLastName, userId } = savedUser;
+
+            await prepareUserData(savedUser, next);
+
+            req.session.regenerate(() => {
+                req.session.userId = savedUser.userId;
+                return res.render("dashboard", {
+                    firstName: newFirstName,
+                    lastName: newLastName,
+                    userId,
+                    csrftoken: res.locals.csrfToken,
+                    environmentalScripts
+                });
+            });
+        } catch (error) {
+            console.log('there was an error to sing up', error);
+            return res.render("signup", {
+                userNameError: 'There was an error to sing up',
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
@@ -293,17 +226,6 @@ function SessionHandler() {
             console.log("welcome: Unable to identify user...redirecting to login");
             return res.redirect("/login");
         }
-
-        /* userId = req.session.userId; */
-        // TODO: validate userId
-        /* userDAO.getUserById(userId, (err, doc) => {
-            if (err) return next(err);
-            doc.userId = userId;
-            return res.render("dashboard", {
-                ...doc,
-                environmentalScripts
-            });
-        }); */
         try {
             const user = await userDAO.getUserById(userId);
             if (user) {
@@ -311,13 +233,10 @@ function SessionHandler() {
                     firstName: user.firstName,
                     lastName: user.lastName,
                     userId: user.userId,
-                    /* csrftoken: res.locals.csrfToken, */
-                    /* firstName: "HOla",
-                    userId: 1234, */
                     environmentalScripts
                 });
             }
-            
+
         } catch (error) {
             console.log('There was an error to displayWelcomePage', error);
         }
