@@ -2,6 +2,7 @@ const { ContributionsDAO } = require("../data/contributions-dao");
 const {
     environmentalScripts
 } = require("../../config/config");
+const { validateNumberParams } = require("../utils/validateParams");
 
 /* The ContributionsHandler must be constructed with a connected db */
 function ContributionsHandler() {
@@ -28,6 +29,11 @@ function ContributionsHandler() {
             });
         } catch (error) {
             console.log('There was an error to displayContributions', error);
+            return res.render("contributions", {
+                updateError: 'There was an error display contributions',
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
         }
 
         /* contributionsDAO.getByUserId(userId, (error, contrib) => {
@@ -42,28 +48,17 @@ function ContributionsHandler() {
     };
 
     this.handleContributionsUpdate = async (req, res, next) => {
-
-        /*jslint evil: true */
-        // Insecure use of eval() to parse inputs
-        const preTax = eval(req.body.preTax);
-        const afterTax = eval(req.body.afterTax);
-        const roth = eval(req.body.roth);
-
-        /*
-        //Fix for A1 -1 SSJS Injection attacks - uses alternate method to eval
-        const preTax = parseInt(req.body.preTax);
-        const afterTax = parseInt(req.body.afterTax);
-        const roth = parseInt(req.body.roth);
-        */
+        const { preTax, afterTax, roth } = req.body;
+        const params = { preTax, afterTax, roth };
+        const { isValid, errors } = validateNumberParams(params, Object.keys(params));
         const { userId } = req.session;
 
-        //validate contributions
-        const validations = [isNaN(preTax), isNaN(afterTax), isNaN(roth), preTax < 0, afterTax < 0, roth < 0]
-        const isInvalid = validations.some(validation => validation)
-        if (isInvalid) {
+        if (!isValid) {
+            console.log('Invalid params to update contributions', errors);
             return res.render("contributions", {
-                updateError: "Invalid contribution percentages",
+                updateError: "Invalid contribution percentages values",
                 userId,
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         }
@@ -72,12 +67,13 @@ function ContributionsHandler() {
             return res.render("contributions", {
                 updateError: "Contribution percentages cannot exceed 30 %",
                 userId,
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         }
 
         try {
-            const contributionsUpdated =  await contributions.update(userId, preTax, afterTax, roth)
+            const contributionsUpdated = await contributions.update(userId, preTax, afterTax, roth)
             contributionsUpdated.updateSuccess = true;
             contributionsUpdated.csrftoken = res.locals.csrfToken;
             return res.render("contributions", {
@@ -86,18 +82,12 @@ function ContributionsHandler() {
             });
         } catch (error) {
             console.log('there was an error to handleContributionsUpdate', error);
-        }
-        /* contributionsDAO.update(userId, preTax, afterTax, roth, (err, contributions) => {
-
-            if (err) return next(err);
-
-            contributions.updateSuccess = true;
             return res.render("contributions", {
-                ...contributions,
+                updateError: 'There was an error to update contributions',
+                csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
-        }); */
-
+        }
     };
 
 }
