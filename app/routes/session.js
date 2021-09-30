@@ -3,7 +3,7 @@ const AllocationsDAO = require("../data/allocations-dao").AllocationsDAO;
 const {
     environmentalScripts
 } = require("../../config/config");
-const { validateCreateUserParams } = require("../utils/validateParams");
+const { validateUserParams } = require("../utils/validateParams");
 
 /* The SessionHandler must be constructed with a connected db */
 function SessionHandler() {
@@ -54,7 +54,7 @@ function SessionHandler() {
             password
         } = req.body
 
-        const { isValid } = validateCreateUserParams({
+        const { isValid } = validateUserParams({
             userName,
             password
         });
@@ -181,7 +181,7 @@ function SessionHandler() {
             verify
         } = req.body;
 
-        const { isValid, errors } = validateCreateUserParams({
+        const { isValid, errors } = validateUserParams({
             email,
             userName,
             firstName,

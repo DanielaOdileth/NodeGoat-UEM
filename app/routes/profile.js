@@ -3,6 +3,7 @@ const ESAPI = require('node-esapi')
 const {
     environmentalScripts
 } = require("../../config/config");
+const { validateUserParams } = require("../utils/validateParams");
 
 /* The ProfileHandler must be constructed with a connected db */
 function ProfileHandler() {
@@ -80,8 +81,8 @@ function ProfileHandler() {
         // with an exponential time until it completes
         // --
         // The Fix: Instead of using greedy quantifiers the same regex will work if we omit the second quantifier +
-        const regexPattern = /([0-9]+)\#/;
-        /* const regexPattern = /([0-9]+)+\#/; */
+        /* const regexPattern = /([0-9]+)\#/;
+        // const regexPattern = /([0-9]+)+\#/;
         // Allow only numbers with a suffix of the letter #, for example: 'XXXXXX#'
         const testComplyWithRequirements = regexPattern.test(bankRouting);
         // if the regex test fails we do not allow saving
@@ -96,6 +97,27 @@ function ProfileHandler() {
                 address,
                 bankAcc,
                 bankRouting,
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
+        } */
+
+        const { isValid, errors } = validateUserParams({
+            firstName,
+            lastName,
+            ssn,
+            dob,
+            address,
+            bankAcc,
+            bankRouting,
+            website
+        }, true);
+
+        if (!isValid) {
+            console.log("user did not validate");
+            console.log('errors --> ', errors);
+            return res.render("profile", {
+                updateError: 'Please provide validate data',
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
@@ -123,7 +145,7 @@ function ProfileHandler() {
             user.userId = userId; */
 
             if (userupdated) {
-                userupdated.updateSuccess = true; //remove updateSuccess
+                userupdated.updateSuccess = true;
             }
 
             return res.render("profile", {
