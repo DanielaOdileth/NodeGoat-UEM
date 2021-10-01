@@ -3,6 +3,7 @@ const { ProfileDAO } = require("../data/profile-dao");
 const {
     environmentalScripts
 } = require("../../config/config");
+const { validateUserParams } = require("../utils/validateParams");
 
 function BenefitsHandler() {
     "use strict";
@@ -33,19 +34,6 @@ function BenefitsHandler() {
             };
             return res.render("benefits", { updateError: true, data });
         }
-
-        /* benefitsDAO.getAllNonAdminUsers((error, users) => {
-
-            if (error) return next(error);
-
-            return res.render("benefits", {
-                users,
-                user: {
-                    isAdmin: true
-                },
-                environmentalScripts
-            });
-        }); */
     };
 
     this.updateBenefits = async (req, res, next) => {
@@ -55,13 +43,32 @@ function BenefitsHandler() {
         } = req.body;
 
         const { userId: adminUserId } = req.session;
-
         try {
             const userProfile = await profile.getByUserId(adminUserId);
-            await benefits.updateBenefits(userId, benefitStartDate);
-
-
             const nonAdminUsers = await benefits.getAllNonAdminUsers();
+
+            const { isValid } = validateUserParams({ benefitStartDate }, true);
+
+            if (!isValid) {
+                console.log("benefitStartDate does not have the correct format");
+                const data = {
+                    updateError: 'benefitStartDate does not have the correct format',
+                    environmentalScripts
+                };
+                return res.render("benefits", {
+                    firstName: userProfile.firstName,
+                    lastName: userProfile.lastName,
+                    csrftoken: res.locals.csrfToken,
+                    updateError: true,
+                    users: nonAdminUsers,
+                    user: {
+                        isAdmin: true
+                    },
+                    data
+                });
+            }
+
+            await benefits.updateBenefits(userId, benefitStartDate);
 
             const data = {
                 users: nonAdminUsers,
@@ -91,26 +98,6 @@ function BenefitsHandler() {
                 data
             });
         }
-
-        /* benefitsDAO.updateBenefits(userId, benefitStartDate, (error) => {
-
-            if (error) return next(error);
-
-            benefitsDAO.getAllNonAdminUsers((error, users) => {
-                if (error) return next(error);
-
-                const data = {
-                    users,
-                    user: {
-                        isAdmin: true
-                    },
-                    updateSuccess: true,
-                    environmentalScripts
-                };
-
-                return res.render("benefits", data);
-            });
-        }); */
     };
 }
 

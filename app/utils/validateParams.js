@@ -62,8 +62,23 @@ const validateUserParams = (params, isFromProfile = false) => {
             errorMessage: 'Please enter a valid SSN. Format: XXX-XX-XXXX',
             required: false
         },
-        dob: {
+       /*  dob: {
             regex: /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/,
+            errorMessage: 'Please enter a valid date. Format: dd/mm/yyyy',
+            required: false
+        },
+        benefitStartDate: {
+            regex: /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/,
+            errorMessage: 'Please enter a valid date. Format: dd/mm/yyyy',
+            required: false
+        }, */
+        dob: {
+            regex: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
+            errorMessage: 'Please enter a valid date. Format: dd/mm/yyyy',
+            required: false
+        },
+        benefitStartDate: {
+            regex: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
             errorMessage: 'Please enter a valid date. Format: dd/mm/yyyy',
             required: false
         },
