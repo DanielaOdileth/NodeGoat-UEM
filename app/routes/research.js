@@ -4,6 +4,7 @@ const needle = require("needle");
 const {
     environmentalScripts
 } = require("../../config/config");
+const { validateSymbol } = require("../utils/validateParams");
 
 function ResearchHandler() {
     "use strict";
@@ -14,9 +15,21 @@ function ResearchHandler() {
     this.displayResearch = async (req, res) => {
         const { userId } = req.session;
         const userProfile = await profile.getByUserId(userId);
+        const { symbol } = req.query;
+        const { isValid, error } = validateSymbol(symbol);
+        if ( symbol && !isValid) {
+            return res.render("research", {
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                researchError: error,
+                csrftoken: res.locals.csrfToken,
+                environmentalScripts
+            });
+        }
 
-        if (req.query.symbol) {
-            const url = req.query.url + req.query.symbol;
+        if (symbol) {
+            const yahooUrl = 'https://finance.yahoo.com/quote/'
+            const url = `${yahooUrl}${symbol}`;
             return needle.get(url, (error, newResponse, body) => {
                 if (!error && newResponse.statusCode === 200) {
                     res.writeHead(200, {

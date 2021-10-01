@@ -1,5 +1,20 @@
 {% extends "./layout.html" %} {% block title %}Research{% endblock %} {% block content %}
-
+<div class="row">
+    <div class="col-lg-12">
+        <!-- /.row -->
+        {% if researchError %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-dismissable alert-danger">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{researchError}}
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+        {% endif %}
+    </div>
+</div>
 <div class="row">
     <div class="col-lg-12">
 
@@ -14,8 +29,11 @@
 
                 <form action="/research" method="get" role="search">
                     <div class="form-group">
-                        <input type="hidden" id="url" name="url" value="https://finance.yahoo.com/quote/"/>
-                        <input type="text" class="form-control" placeholder="Stock Symbol" name="symbol" />
+                        <!-- <input type="hidden" id="url" name="url" value="https://finance.yahoo.com/quote/" /> -->
+                        <input type="text" class="form-control" placeholder="Stock Symbol" name="symbol"
+                            pattern="^[a-zA-Z]$"
+                            oninvalid="setCustomValidity('Please enter a valid symbol')"
+                            oninput="setCustomValidity('')" />
                         <p class="help-block">Enter Stock Symbol.</p>
                     </div>
 

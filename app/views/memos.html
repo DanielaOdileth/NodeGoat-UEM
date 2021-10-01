@@ -1,4 +1,20 @@
 {% extends "./layout.html" %} {% block title %}Memos{% endblock %} {% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- /.row -->
+        {% if markdownError %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-dismissable alert-danger">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{markdownError}}
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+        {% endif %}
+    </div>
+</div>
 
 <div class="row">
     <div class="col-lg-12">
@@ -15,7 +31,9 @@
                 <form action="/memos" method="post" role="search">
 
                     <div class="form-group">
-                        <textarea class="form-control" name="memo"></textarea>
+                        <textarea class="form-control" name="memo" pattern="(?:__|[*#])|\[(.*?)\]\(.*?\)"
+                            oninvalid="setCustomValidity('Please enter a valid Markdown')"
+                            oninput="setCustomValidity('')"></textarea>
                         <p class="help-block">You may use Markdown syntax to format your memo</p>
                     </div>
                     <input type="hidden" name="_csrf" value="{{csrftoken}}"></input>

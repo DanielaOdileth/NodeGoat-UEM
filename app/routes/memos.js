@@ -1,5 +1,6 @@
 const { MemosDAO } = require("../data/memos-dao");
 const { environmentalScripts } = require("../../config/config");
+const { validateMardown } = require("../utils/validateParams");
 
 function MemosHandler() {
     "use strict";
@@ -8,22 +9,29 @@ function MemosHandler() {
 
     this.addMemos = async (req, res, next) => {
         try {
+            const { memo } = req.body;
+            const { userId } = req.session;
+            const { isValid, error } = validateMardown(memo);
+            if (!isValid) {
+                const docs = await memosDAO.getAllMemos();
+                return res.render("memos", {
+                    memosList: docs,
+                    userId,
+                    markdownError: error,
+                    csrftoken: res.locals.csrfToken,
+                    environmentalScripts
+                });
+            }
             await memosDAO.insert(req.body.memo);
             return this.displayMemos(req, res, next);
         } catch (error) {
             console.log('There was an erro to addMemos', error);
         }
-
-        /*  memosDAO.insert(req.body.memo, (err, docs) => {
-             if (err) return next(err);
-             this.displayMemos(req, res, next);
-         }); */
     };
 
     this.displayMemos = async (req, res, next) => {
 
         const { userId } = req.session;
-
         try {
             const docs = await memosDAO.getAllMemos();
             return res.render("memos", {
@@ -35,15 +43,6 @@ function MemosHandler() {
         } catch (error) {
             console.log('There was an error to displayMemos', error);
         }
-
-        /* memosDAO.getAllMemos((err, docs) => {
-            if (err) return next(err);
-            return res.render("memos", {
-                memosList: docs,
-                userId: userId,
-                environmentalScripts
-            });
-        }); */
     };
 
 }
