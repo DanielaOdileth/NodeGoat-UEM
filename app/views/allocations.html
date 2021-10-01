@@ -1,4 +1,20 @@
 {% extends "./layout.html" %} {% block title %}Allocations{% endblock %} {% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- /.row -->
+        {% if allocationsError %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-dismissable alert-danger">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{allocationsError}}
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+        {% endif %}
+    </div>
+</div>
 
 <div class="row">
     <div class="col-lg-12">
@@ -19,8 +35,10 @@
                         The attacker, or user should not be able to enter anything other than 0-99.              
                         Also implement fix in allocations-dao.js-->
                         <!--<input type="number" min="0" max="99" class="form-control" placeholder="Stocks Threshold" name="threshold" />-->
-                        <input type="text" class="form-control" placeholder="Stocks Threshold" name="threshold" />
-                        <p class="help-block">Using above threshold value, it will return all assets allocation above the specified stocks percentage number.</p>
+                        <input type="number" class="form-control" placeholder="Stocks Threshold" name="threshold"
+                            min="0" max="100" style="width: 100%;" required/>
+                        <p class="help-block">Using above threshold value, it will return all assets allocation above
+                            the specified stocks percentage number.</p>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Submit</button>

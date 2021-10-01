@@ -1,8 +1,8 @@
 const UserDAO = require("./user-dao").UserDAO;
 const Allocation = require('../schemas/Allocation');
-const { ObjectId } = require('mongodb');
+const { validateNumberParams } = require("../utils/validateParams");
 /* The AllocationsDAO must be constructed with a connected database object */
-const AllocationsDAO = function (db) {
+const AllocationsDAO = function () {
 
     "use strict";
 
@@ -28,7 +28,6 @@ const AllocationsDAO = function (db) {
         };
 
         try {
-
             const insertAllocation = await Allocation.updateOne({ userId: user._id }, allocations, { upsert: true }).exec();
 
             if (insertAllocation) {
@@ -40,7 +39,6 @@ const AllocationsDAO = function (db) {
                 allocations.lastName = user.lastName;
 
                 return allocations;
-                /* }); */
             }
         } catch (error) {
             console.log('there was an error to update user allocations', error);
@@ -48,44 +46,51 @@ const AllocationsDAO = function (db) {
         }
     };
 
+
+    const searchCriteria = (user, threshold) => {
+
+        if (threshold) {
+            const { isValid, errors } = validateNumberParams({ threshold });
+
+            if (!isValid) {
+                console.log('Invalid params to get allocations', errors);
+                return { isNotValid: true, errors };
+            }
+            /*
+            // Fix for A1 - 2 NoSQL Injection - escape the threshold parameter properly
+            // Fix this NoSQL Injection which doesn't sanitze the input parameter 'threshold' and allows attackers
+            // to inject arbitrary javascript code into the NoSQL query:
+            // 1. 0';while(true){}'
+            // 2. 1'; return 1 == '1
+            // Also implement fix in allocations.html for UX.                             
+            const parsedThreshold = parseInt(threshold, 10);
+            
+            if (parsedThreshold >= 0 && parsedThreshold <= 99) {
+                return {$where: `this.userId == ${parsedUserId} && this.stocks > ${parsedThreshold}`};
+            }
+            throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
+            */
+            /*  where: `userId == ${user._id} && stocks > '${threshold}'` */
+            return { userId: user._id, stocks: { $gte: Number(threshold) } }
+        }
+        return { userId: user._id };
+    }
+
+
     this.getByUserIdAndThreshold = async (userId, threshold) => {
-        /*  const parsedUserId = parseInt(userId); */
         try {
             const user = await userDAO.getUserById(userId);
-            const searchCriteria = () => {
-
-                if (threshold) {
-                    /*
-                    // Fix for A1 - 2 NoSQL Injection - escape the threshold parameter properly
-                    // Fix this NoSQL Injection which doesn't sanitze the input parameter 'threshold' and allows attackers
-                    // to inject arbitrary javascript code into the NoSQL query:
-                    // 1. 0';while(true){}'
-                    // 2. 1'; return 1 == '1
-                    // Also implement fix in allocations.html for UX.                             
-                    const parsedThreshold = parseInt(threshold, 10);
-                    
-                    if (parsedThreshold >= 0 && parsedThreshold <= 99) {
-                        return {$where: `this.userId == ${parsedUserId} && this.stocks > ${parsedThreshold}`};
-                    }
-                    throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
-                    */
-                    /*  where: `userId == ${user._id} && stocks > '${threshold}'` */
-                    return { userId: user._id, stocks: { $gte: threshold } }
-                }
-                return { userId: user._id };
+            const queryToSearch = searchCriteria(user, threshold);
+            if (queryToSearch.isNotValid) {
+                return { errors: queryToSearch.errors }
             }
 
-            const allocations = await Allocation.find(searchCriteria());
+            const allocations = await Allocation.find(queryToSearch);
 
             if (!allocations.length) {
                 console.log("ERROR: No allocations found for the user");
                 return [];
             }
-
-            /* let doneCounter = 0;
-            const userAllocations = []; */
-
-            /* const userAllocations = await Promise.all(allocations.forEach(async alloc => { */
             const userAllocations = allocations.map(allocation => {
                 allocation.firstName = user.firstName;
                 allocation.lastName = user.lastName;

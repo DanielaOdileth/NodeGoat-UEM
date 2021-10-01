@@ -8,7 +8,7 @@ const validateNumberParams = (params, requiredParams) => {
         if (isNaN(value)) {
             keyErrors.push(`${keyParam} should be a number`);
         } else if (Number(value) < 0) {
-            keyErrors.push(`${keyParam} should be greater than or equal to cero`)
+            keyErrors.push(`${keyParam} should be greater than or equal to zero`)
         }
         keyErrors.length && errors.push(keyErrors);
 
