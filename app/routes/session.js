@@ -22,9 +22,20 @@ function SessionHandler() {
         return allocationsDAO.update(user.userId, stocks, funds, bonds);
     };
 
-    this.isAdminUserMiddleware = (req, res, next) => {
-        if (req.session.userId) {
-            return userDAO.getUserById(req.session.userId, (err, user) => user && user.isAdmin ? next() : res.redirect("/login"));
+    this.isAdminUserMiddleware = async (req, res, next) => {
+        const userId = req.session.userId;
+        if (userId) {
+            try {
+                const user = await userDAO.getUserById(userId);
+                if(!user.isAdmin){
+                    logger.warn(`The user ${userId} is not an admin user`)
+                    res.redirect('/login');
+                }
+                return next();
+            } catch (error) {
+                logger.error(`There was an error to validate if userId ${userId} is admin`);
+                return error;
+            }
         }
         logger.info("redirecting to login");
         return res.redirect("/login");
