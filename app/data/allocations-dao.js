@@ -51,27 +51,12 @@ const AllocationsDAO = function () {
 
         if (threshold) {
             const { isValid, errors } = validateNumberParams({ threshold });
-
-            if (!isValid) {
+            const thresholdNumber = Number(threshold);
+            if (!isValid || thresholdNumber > 99) {
                 console.log('Invalid params to get allocations', errors);
                 return { isNotValid: true, errors };
             }
-            /*
-            // Fix for A1 - 2 NoSQL Injection - escape the threshold parameter properly
-            // Fix this NoSQL Injection which doesn't sanitze the input parameter 'threshold' and allows attackers
-            // to inject arbitrary javascript code into the NoSQL query:
-            // 1. 0';while(true){}'
-            // 2. 1'; return 1 == '1
-            // Also implement fix in allocations.html for UX.                             
-            const parsedThreshold = parseInt(threshold, 10);
-            
-            if (parsedThreshold >= 0 && parsedThreshold <= 99) {
-                return {$where: `this.userId == ${parsedUserId} && this.stocks > ${parsedThreshold}`};
-            }
-            throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
-            */
-            /*  where: `userId == ${user._id} && stocks > '${threshold}'` */
-            return { userId: user._id, stocks: { $gte: Number(threshold) } }
+            return { userId: user._id, stocks: { $gte: thresholdNumber } }
         }
         return { userId: user._id };
     }

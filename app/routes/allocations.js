@@ -8,13 +8,6 @@ function AllocationsHandler() {
     const allocationsDAO = new AllocationsDAO();
 
     this.displayAllocations = async (req, res, next) => {
-        /*
-        // Fix for A4 Insecure DOR -  take user id from session instead of from URL param
-        const { userId } = req.session;
-        */
-        /* const {
-            userId
-        } = req.params; */
         const { userId } = req.session;
         const { threshold } = req.query
 
@@ -40,15 +33,6 @@ function AllocationsHandler() {
                 environmentalScripts
             });
         }
-        /* allocationsDAO.getByUserIdAndThreshold(userId, threshold, (err, allocations) => {
-            if (err) return next(err);
-            return res.render("allocations", {
-                userId,
-                allocationsError
-                allocations,
-                environmentalScripts
-            });
-        }); */
     };
 }
 

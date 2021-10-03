@@ -93,46 +93,18 @@ function SessionHandler() {
                 environmentalScripts
             });
         }
-        /** TODO: REMOVE ERROR MESSAGES */
-        /* const invalidUserNameErrorMessage = "Invalid username";
-        const invalidPasswordErrorMessage = "Invalid password";
-        if (err) {
-            if (err.noSuchUser) {
-                console.log('Error: attempt to login with invalid user: ', userName);
+        // Fix for A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
+        // that could result in log forging:
+        // - Step 1: Require a module that supports encoding
+        // const ESAPI = require('node-esapi');
+        // - Step 2: Encode the user input that will be logged in the correct context
+        // following are a few examples:
+        // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForHTML(userName));
+        // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForJavaScript(userName));
+        // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForURL(userName));
+        // or if you know that this is a CRLF vulnerability you can target this specifically as follows:
+        // console.log('Error: attempt to login with invalid user: %s', userName.replace(/(\r\n|\r|\n)/g, '_'));
 
-                // Fix for A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
-                // that could result in log forging:
-                // - Step 1: Require a module that supports encoding
-                // const ESAPI = require('node-esapi');
-                // - Step 2: Encode the user input that will be logged in the correct context
-                // following are a few examples:
-                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForHTML(userName));
-                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForJavaScript(userName));
-                // console.log('Error: attempt to login with invalid user: %s', ESAPI.encoder().encodeForURL(userName));
-                // or if you know that this is a CRLF vulnerability you can target this specifically as follows:
-                // console.log('Error: attempt to login with invalid user: %s', userName.replace(/(\r\n|\r|\n)/g, '_'));
-
-                return res.render("login", {
-                    userName: userName,
-                    password: "",
-                    loginError: invalidUserNameErrorMessage,
-                    //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                    // loginError: errorMessage
-                    environmentalScripts
-                });
-            } else if (err.invalidPassword) {
-                return res.render("login", {
-                    userName: userName,
-                    password: "",
-                    loginError: invalidPasswordErrorMessage,
-                    //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                    // loginError: errorMessage
-                    environmentalScripts
-                });
-            } else {
-                return next(err);
-            }
-        } */
 
         // A2-Broken Authentication and Session Management
         // Upon login, a security best practice with regards to cookies session management
@@ -146,10 +118,6 @@ function SessionHandler() {
         // by wrapping the below code as a function callback for the method req.session.regenerate()
         // i.e:
         // `req.session.regenerate(() => {})`
-        /** TODO: USE REQ.SESSION.REGENERATE? */
-        /* req.session.userId = user._id;
-        return res.redirect(user.isAdmin ? "/benefits" : "/dashboard") */
-        /* }); */
     };
 
     this.displayLogoutPage = (req, res) => {
@@ -209,7 +177,7 @@ function SessionHandler() {
                 });
             }
 
-            if(password !== verify) {
+            if (password !== verify) {
                 return res.render("signup", {
                     passwordError: 'verify password and password does not match',
                     csrftoken: res.locals.csrfToken,
