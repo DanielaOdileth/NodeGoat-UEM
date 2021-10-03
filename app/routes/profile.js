@@ -19,6 +19,7 @@ function ProfileHandler() {
             // doesn't end up as an XSS attack, the context is incorrect as it is encoding the firstname for HTML
             // while this same variable is also used in the context of a URL link element
             userProfile.website = ESAPI.encoder().encodeForURL(userProfile.website)
+            userProfile.firstNameSafeString = ESAPI.encoder().encodeForURL(userProfile.firstName)
             const {
                 firstName,
                 lastName,
@@ -27,7 +28,8 @@ function ProfileHandler() {
                 bankAcc,
                 bankRouting,
                 address,
-                website
+                website,
+                firstNameSafeString
             } = userProfile
             return res.render("profile", {
                 firstName,
@@ -38,6 +40,7 @@ function ProfileHandler() {
                 bankRouting,
                 address,
                 website,
+                firstNameSafeString,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });

@@ -9,7 +9,6 @@ const { validateSymbol } = require("../utils/validateParams");
 function ResearchHandler() {
     "use strict";
 
-    const researchDAO = new ResearchDAO();
     const profile = new ProfileDAO();
 
     this.displayResearch = async (req, res) => {
@@ -17,7 +16,7 @@ function ResearchHandler() {
         const userProfile = await profile.getByUserId(userId);
         const { symbol } = req.query;
         const { isValid, error } = validateSymbol(symbol);
-        if ( symbol && !isValid) {
+        if (symbol && !isValid) {
             return res.render("research", {
                 firstName: userProfile.firstName,
                 lastName: userProfile.lastName,
