@@ -12,14 +12,15 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const compression = require('compression');
 const cookieParser = require('cookie-parser')
-
 const marked = require("marked");
-//const nosniff = require('dont-sniff-mimetype');
-const routes = require("./app/routes");
-const { port, db, cookieSecret } = require("./config/config"); // Application config properties
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
+const logger = require('./app/utils/logger');
+
+//const nosniff = require('dont-sniff-mimetype');
+const routes = require("./app/routes");
+const { port, db, cookieSecret } = require("./config/config"); // Application config properties
 
 const httpsOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.key")),
@@ -28,11 +29,10 @@ const httpsOptions = {
 
 mongoose.connect(db, (err, db) => {
     if (err) {
-        console.log("Error: DB: connect");
-        console.log(err);
+        logger.error(`Error: DB: connect: ${err}`);
         process.exit(1);
     }
-    console.log(`Connected to the database`);
+    logger.info(`Connected to the database`);
 
     const app = express();
 
@@ -48,8 +48,6 @@ mongoose.connect(db, (err, db) => {
     app.use(compression())
 
     app.use(cors());
-
-    /** -----> */
     app.use(favicon(__dirname + "/app/assets/favicon.ico"));
 
     // Express middleware to populate "req.body" so we can access POST variables
@@ -126,7 +124,7 @@ mongoose.connect(db, (err, db) => {
     // Fix for A6-Sensitive Data Exposure
     // Use secure HTTPS protocol
     https.createServer(httpsOptions, app).listen(port, () => {
-        console.log(`Express http server listening on port ${port}`);
+        logger.info(`Express http server listening on port ${port}`);
     });
 
 

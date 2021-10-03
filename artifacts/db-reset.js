@@ -14,6 +14,7 @@ const Allocation = require('../app/schemas/Allocation');
 const Contribution = require('../app/schemas/Contribution');
 const bcrypt = require("bcrypt-nodejs");
 const uuid = require('../helper/uuid');
+const logger = require('../app/utils/logger');
 
 const USERS_TO_INSERT = [
     {
@@ -47,42 +48,19 @@ const USERS_TO_INSERT = [
         //"password": "$2a$10$Tlx2cNv15M0Aia7wyItjsepeA8Y6PyBYaNdQqvpxkIUlcONf1ZHyq", // User2_123
     }];
 
-const tryDropCollection = (db, name) => {
-    return new Promise((resolve, reject) => {
-        db.dropCollection(name, (err, data) => {
-            if (!err) {
-                console.log(`Dropped collection: ${name}`);
-            }
-            resolve(undefined);
-        });
-    });
-}
-
-const parseResponse = (err, res, comm) => {
-    if (err) {
-        console.log("ERROR:");
-        console.log(comm);
-        console.log(JSON.stringify(err));
-        process.exit(1);
-    }
-    console.log(comm);
-    console.log(JSON.stringify(res));
-}
-
-console.log("******* db.reset *****");
 const collections = mongoose.connections[0].collections;
 const names = Object.keys(collections);
 
-console.log("*** Dropping existing collections ***");
+logger.debug(`Dropping existing collections ${names}`);
 
 Promise.all([User.collection.drop(), Allocation.collection.drop(), Contribution.collection.drop()])
     .then(async () => {
-        console.log('collections droped');
+        logger.info('collections droped');
     }).catch(err => {
         if (err.codeName === "NamespaceNotFound") {
-            console.warn('There is no collections on the db');
+            logger.warn('There is no collections on the db');
         } else {
-            console.log('There was an error to drop the collections', err);
+            logger.error(`There was an error to drop the collections ${err}`);
         }
     })
 
@@ -99,20 +77,13 @@ User.insertMany(USERS_TO_INSERT)
                 bonds: 100 - (stocks + funds)
             };
         });
-        /*  try {
-             await Allocation.insertMany(allocations);
-             console.log("Database reset performed successfully")
-             process.exit(0);
-         } catch (error) {
-             console.log('There was an error to insert the data: ', error);
-         } */
         Allocation.insertMany(allocations)
-            .then(() => { 
-                console.log("Database reset performed successfully")
+            .then(() => {
+                logger.info("Database reset performed successfully")
                 process.exit(0);
             });
     }).catch(error => {
-        console.log('error to insertMany users', error);
+        logger.error(`error to insertMany users: ${error}`);
         process.exit(1);
     });
 

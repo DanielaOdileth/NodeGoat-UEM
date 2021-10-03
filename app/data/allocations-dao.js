@@ -1,6 +1,7 @@
 const UserDAO = require("./user-dao").UserDAO;
 const Allocation = require('../schemas/Allocation');
 const { validateNumberParams } = require("../utils/validateParams");
+const logger = require('../utils/logger');
 /* The AllocationsDAO must be constructed with a connected database object */
 const AllocationsDAO = function () {
 
@@ -9,7 +10,7 @@ const AllocationsDAO = function () {
     /* If this constructor is called without the "new" operator, "this" points
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof AllocationsDAO)) {
-        console.log("Warning: AllocationsDAO constructor called without 'new' operator");
+        logger.warn("Warning: AllocationsDAO constructor called without 'new' operator");
         return new AllocationsDAO();
     }
 
@@ -17,6 +18,7 @@ const AllocationsDAO = function () {
     const userDAO = new UserDAO();
 
     this.update = async (userId, stocks, funds, bonds) => {
+        logger.info(`Entering to update allocations for userId ${userId}`)
         /* const parsedUserId = parseInt(userId); */
         const user = await userDAO.getUserById(userId);
         // Create allocations document
@@ -32,8 +34,7 @@ const AllocationsDAO = function () {
 
             if (insertAllocation) {
 
-                console.log("Updated allocations");
-                // add user details
+                logger.warn(`Updated allocations for userId ${userId}`);
                 allocations.username = user.username;
                 allocations.firstName = user.firstName;
                 allocations.lastName = user.lastName;
@@ -41,7 +42,7 @@ const AllocationsDAO = function () {
                 return allocations;
             }
         } catch (error) {
-            console.log('there was an error to update user allocations', error);
+            logger.error(`there was an error to update user allocations for userId: ${userId}. Error: ${error}`);
             return error;
         }
     };
@@ -53,7 +54,7 @@ const AllocationsDAO = function () {
             const { isValid, errors } = validateNumberParams({ threshold });
             const thresholdNumber = Number(threshold);
             if (!isValid || thresholdNumber > 99) {
-                console.log('Invalid params to get allocations', errors);
+                logger.warn(`Invalid params to get allocations for user ${user.userId}. Error: ${errors}`);
                 return { isNotValid: true, errors };
             }
             return { userId: user._id, stocks: { $gte: thresholdNumber } }
@@ -73,7 +74,7 @@ const AllocationsDAO = function () {
             const allocations = await Allocation.find(queryToSearch);
 
             if (!allocations.length) {
-                console.log("ERROR: No allocations found for the user");
+                logger.warn(`ERROR: No allocations found for the user ${userId}`);
                 return [];
             }
             const userAllocations = allocations.map(allocation => {
@@ -83,7 +84,7 @@ const AllocationsDAO = function () {
             });
             return userAllocations;
         } catch (error) {
-            console.log('There was an error to getByUserIdAndThreshold', error);
+            logger.error(`There was an error to getByUserIdAndThreshold ${error}`);
         }
     };
 

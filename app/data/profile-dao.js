@@ -3,6 +3,7 @@ const { UserDAO } = require("./user-dao");
 const User = require('../schemas/User');
 const crypto = require("crypto");
 const config = require("../../config/config");
+const logger = require('../utils/logger');
 
 function ProfileDAO() {
 
@@ -11,7 +12,7 @@ function ProfileDAO() {
     /* If this constructor is called without the "new" operator, "this" points
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof ProfileDAO)) {
-        console.log("Warning: ProfileDAO constructor called without 'new' operator");
+        logger.warn("Warning: ProfileDAO constructor called without 'new' operator");
         return new ProfileDAO();
     }
 
@@ -70,7 +71,7 @@ function ProfileDAO() {
             user.address = user.address ? decrypt(user.address) : "";
             return user;
         } catch (error) {
-            console.log('there was an error to getByUserId', error);
+            logger.error('there was an error to getByUserId', error);
             return error
         }
     };

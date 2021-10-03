@@ -4,6 +4,7 @@ const {
     environmentalScripts
 } = require("../../config/config");
 const { validateUserParams } = require("../utils/validateParams");
+const logger = require('../utils/logger');
 
 /* The SessionHandler must be constructed with a connected db */
 function SessionHandler() {
@@ -25,7 +26,7 @@ function SessionHandler() {
         if (req.session.userId) {
             return userDAO.getUserById(req.session.userId, (err, user) => user && user.isAdmin ? next() : res.redirect("/login"));
         }
-        console.log("redirecting to login");
+        logger.info("redirecting to login");
         return res.redirect("/login");
 
     };
@@ -34,7 +35,7 @@ function SessionHandler() {
         if (req.session.userId) {
             return next();
         }
-        console.log("redirecting to login");
+        logger.info("redirecting to login");
         return res.redirect("/login");
     };
 
@@ -60,7 +61,7 @@ function SessionHandler() {
         });
 
         if (!isValid) {
-            console.log("user login not validate");
+            logger.warn("user login is not valid");
             return res.render("login", {
                 userName: userName,
                 password: "",
@@ -159,7 +160,7 @@ function SessionHandler() {
         });
 
         if (!isValid) {
-            console.log("user did not validate");
+            logger.warn(`user object is not valid. Errors: ${errors}`);
             return res.render("signup", {
                 ...errors,
                 csrftoken: res.locals.csrfToken,
@@ -201,7 +202,7 @@ function SessionHandler() {
                 });
             });
         } catch (error) {
-            console.log('there was an error to sing up', error);
+            logger.error(`there was an error to sing up. Error: ${error}`);
             return res.render("signup", {
                 userNameError: 'There was an error to sing up',
                 csrftoken: res.locals.csrfToken,
@@ -213,7 +214,7 @@ function SessionHandler() {
     this.displayWelcomePage = async (req, res, next) => {
         const { userId } = req.session;
         if (!userId) {
-            console.log("welcome: Unable to identify user...redirecting to login");
+            logger.info("welcome: Unable to identify user...redirecting to login");
             return res.redirect("/login");
         }
         try {
@@ -228,7 +229,7 @@ function SessionHandler() {
             }
 
         } catch (error) {
-            console.log('There was an error to displayWelcomePage', error);
+            logger.error(`There was an error to displayWelcomePage. Error: ${error}`);
         }
     };
 }

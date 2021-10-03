@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt-nodejs");
 const User = require('../schemas/User');
 const { v4: uuidv4 } = require('uuid');
+const logger = require('../utils/logger');
 
 const comparePassword = (fromDB, fromUser) => {
     return bcrypt.compareSync(fromDB, fromUser);;
@@ -33,14 +34,14 @@ function UserDAO() {
     /* If this constructor is called without the "new" operator, "this" points
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof UserDAO)) {
-        console.log("Warning: UserDAO constructor called without 'new' operator");
+        logger.warn("Warning: UserDAO constructor called without 'new' operator");
         return new UserDAO();
     }
 
     /* const usersCol = db.collection("users"); */
 
     this.addUser = (userName, firstName, lastName, password, email) => {
-
+        logger.info(`Entering to add new user. username ${userName}`)
         // Create user document
         const user = {
             username: userName,
@@ -74,7 +75,7 @@ function UserDAO() {
             }).exec();
             return validateUserDoc(user, password);
         } catch (error) {
-            console.log('there was an erro to validateLogin', error);
+            logger.error(`there was an erro to validateLogin. Error: ${error}`);
             return error;
         }
     };

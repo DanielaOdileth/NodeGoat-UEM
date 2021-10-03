@@ -2,6 +2,8 @@ const AllocationsDAO = require("../data/allocations-dao").AllocationsDAO;
 const {
     environmentalScripts
 } = require("../../config/config");
+const logger = require('../utils/logger');
+
 function AllocationsHandler() {
     "use strict";
 
@@ -26,7 +28,7 @@ function AllocationsHandler() {
                 environmentalScripts
             });
         } catch (error) {
-            console.log('There was an error to displayAllocations', error);
+            logger.error(`There was an error to displayAllocations ${error}`);
             return res.render("allocations", {
                 userId,
                 allocationsError: 'There was an error to displayAllocations',

@@ -22,6 +22,8 @@
     "mongoose": "^6.0.7",
     "needle": "2.2.4",
     "node-esapi": "0.0.1",
+    "pino": "^6.13.3",
+    "pino-pretty": "^7.0.1",
     "serve-favicon": "^2.3.0",
     "swig": "^1.4.2",
     "underscore": "^1.13.1",

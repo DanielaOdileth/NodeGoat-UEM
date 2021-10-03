@@ -4,6 +4,8 @@ const {
     environmentalScripts
 } = require("../../config/config");
 const { validateUserParams } = require("../utils/validateParams");
+const logger = require('../utils/logger');
+
 function ProfileHandler() {
     "use strict";
 
@@ -41,13 +43,15 @@ function ProfileHandler() {
                 address,
                 website,
                 firstNameSafeString,
+                userId,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         } catch (error) {
-            console.log('There was an error to display profile', error);
+            logger.error(`There was an error to display profile. Error: ${error}`);
             return res.render("profile", {
                 updateError: 'There was an error to get the user info',
+                userId,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
@@ -89,9 +93,10 @@ function ProfileHandler() {
         }, true);
 
         if (!isValid) {
-            console.log("user did not validate");
+            logger.warn();("user ist not valid");
             return res.render("profile", {
                 updateError: 'Please provide validate data',
+                userId,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
@@ -128,13 +133,15 @@ function ProfileHandler() {
                 bankRouting,
                 website,
                 updateSuccess,
+                userId,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });
         } catch (error) {
-            console.log('There was an error to handleProfileUpdate', error);
+            logger.error(`There was an error to handleProfileUpdate. Error: ${error}`);
             return res.render("profile", {
                 updateError: 'There was an error to update user',
+                userId,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });

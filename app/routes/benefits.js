@@ -4,6 +4,7 @@ const {
     environmentalScripts
 } = require("../../config/config");
 const { validateUserParams } = require("../utils/validateParams");
+const logger = require('../utils/logger');
 
 function BenefitsHandler() {
     "use strict";
@@ -27,7 +28,7 @@ function BenefitsHandler() {
                 environmentalScripts
             });
         } catch (error) {
-            console.log('there was an error to displayBenefits', error);
+            logger.error(`there was an error to displayBenefits. Error: ${error}`);
             const data = {
                 updateError: 'There was an error to get users benefits',
                 environmentalScripts
@@ -50,7 +51,7 @@ function BenefitsHandler() {
             const { isValid } = validateUserParams({ benefitStartDate }, true);
 
             if (!isValid) {
-                console.log("benefitStartDate does not have the correct format");
+                logger.warn("benefitStartDate does not have the correct format");
                 const data = {
                     updateError: 'benefitStartDate does not have the correct format',
                     environmentalScripts
@@ -85,7 +86,7 @@ function BenefitsHandler() {
             return res.render("benefits", data);
 
         } catch (error) {
-            console.log('There was an error to updateBenefits', error);
+            logger.error(`There was an error to updateBenefits ${error}`);
             const data = {
                 updateError: 'There was an error to update user benefits',
                 environmentalScripts

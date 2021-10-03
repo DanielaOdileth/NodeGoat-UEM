@@ -30,9 +30,9 @@
                 <form action="/research" method="get" role="search">
                     <div class="form-group">
                         <input type="text" class="form-control" placeholder="Stock Symbol" name="symbol"
-                            pattern="^[a-zA-Z]$"
-                            oninvalid="setCustomValidity('Please enter a valid symbol')"
+                            pattern="^[a-zA-Z]$" oninvalid="setCustomValidity('Please enter a valid symbol')"
                             oninput="setCustomValidity('')" />
+                        <input type="hidden" name="_csrf" value="{{csrftoken}}" />
                         <p class="help-block">Enter Stock Symbol.</p>
                     </div>
 

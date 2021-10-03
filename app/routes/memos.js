@@ -1,6 +1,7 @@
 const { MemosDAO } = require("../data/memos-dao");
 const { environmentalScripts } = require("../../config/config");
 const { validateMardown } = require("../utils/validateParams");
+const logger = require('../utils/logger');
 
 function MemosHandler() {
     "use strict";
@@ -11,8 +12,10 @@ function MemosHandler() {
         try {
             const { memo } = req.body;
             const { userId } = req.session;
+            logger.info(`Entering to add memos for userId: ${userId}`);
             const { isValid, error } = validateMardown(memo);
             if (!isValid) {
+                logger.warn(`markdown value is not valid, for userId: ${userId}`);
                 const docs = await memosDAO.getAllMemos();
                 return res.render("memos", {
                     memosList: docs,
@@ -25,7 +28,7 @@ function MemosHandler() {
             await memosDAO.insert(req.body.memo);
             return this.displayMemos(req, res, next);
         } catch (error) {
-            console.log('There was an erro to addMemos', error);
+            logger.error(`There was an error to addMemos ${error}`);
         }
     };
 
@@ -41,7 +44,7 @@ function MemosHandler() {
                 environmentalScripts
             });
         } catch (error) {
-            console.log('There was an error to displayMemos', error);
+           logger.error(`There was an error to displayMemos. Error: ${error}`);
         }
     };
 

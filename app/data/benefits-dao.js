@@ -1,5 +1,6 @@
 /* The BenefitsDAO must be constructed with a connected database object */
 const User = require('../schemas/User');
+const logger = require('../utils/logger');
 
 function BenefitsDAO() {
 
@@ -8,7 +9,7 @@ function BenefitsDAO() {
     /* If this constructor is called without the "new" operator, "this" points
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof BenefitsDAO)) {
-        console.log("Warning: BenefitsDAO constructor called without 'new' operator");
+        logger.warn("Warning: BenefitsDAO constructor called without 'new' operator");
         return new BenefitsDAO();
     }
 

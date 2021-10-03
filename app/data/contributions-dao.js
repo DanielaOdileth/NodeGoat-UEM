@@ -1,6 +1,7 @@
 const { UserDAO } = require("./user-dao");
 const Contribution = require('../schemas/Contribution');
 const { ObjectId } = require('mongodb');
+const logger = require('../utils/logger');
 
 /* The ContributionsDAO must be constructed with a connected database object */
 function ContributionsDAO() {
@@ -9,7 +10,7 @@ function ContributionsDAO() {
     /* If this constructor is called without the "new" operator, "this" points
      * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof ContributionsDAO)) {
-        console.log("Warning: ContributionsDAO constructor called without 'new' operator");
+        logger.warn("Warning: ContributionsDAO constructor called without 'new' operator");
         return new ContributionsDAO();
     }
 
@@ -17,10 +18,8 @@ function ContributionsDAO() {
     const userDAO = new UserDAO();
 
     this.update = async (userId, preTax, afterTax, roth) => {
-        const parsedUserId = parseInt(userId);
-
-
         try {
+            logger.info(`Entering to update contributions for userId ${userId}`)
             const user = await userDAO.getUserById(userId);
             // Create contributions document
             const contributions = {
@@ -37,7 +36,7 @@ function ContributionsDAO() {
             ).lean();
 
             if (contributionUpdated) {
-                console.log("Updated allocations");
+                logger.info(`Updated allocations for user: ${userId}`);
                 const user = await userDAO.getUserById(userId);
                 return {
                     firstName: user.firstName,
@@ -49,7 +48,7 @@ function ContributionsDAO() {
                 };
             }
         } catch (error) {
-            console.log('There was an error to update contributions-data ', error);
+            logger.error(`There was an error to update contributions-data ${error}`);
         }
         /* err => {
             if (!err) {
@@ -97,7 +96,7 @@ function ContributionsDAO() {
 
             /* } */
         } catch (error) {
-            console.log('error to getUserById contributions-dao', error);
+            logger.error(`error to getUserById contributions-dao. Error: ${error}`);
         }
     };
 }
