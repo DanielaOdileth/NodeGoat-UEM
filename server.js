@@ -5,7 +5,6 @@ const favicon = require("serve-favicon");
 const bodyParser = require("body-parser");
 const csrf = require('csurf')
 const session = require("express-session");
-// const csrf = require('csurf');
 const consolidate = require("consolidate"); // Templating library adapter for Express
 const swig = require("swig");
 const helmet = require("helmet");
@@ -23,7 +22,7 @@ const marked = require("marked");
 const routes = require("./app/routes");
 const { port, db, cookieSecret } = require("./config/config"); // Application config properties
 
-/*
+
 // Fix for A6-Sensitive Data Exposure
 // Load keys for establishing secure HTTPS connection
 const fs = require("fs");
@@ -33,7 +32,7 @@ const httpsOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.key")),
     cert: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.crt"))
 };
-*/
+
 
 mongoose.connect(db, (err, db) => {
     if (err) {
@@ -99,7 +98,7 @@ mongoose.connect(db, (err, db) => {
         //},
         secret: cookieSecret,
         name: "sessionId",
-        key: "sessionId2",
+        key: "sessionId",
         cookie: {
             secure: false,
             httpOnly: true,
@@ -181,16 +180,16 @@ mongoose.connect(db, (err, db) => {
     /* http.createServer(app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     }); */
-    app.listen(4000, () => {
+    /* app.listen(4000, () => {
         console.log(`Express http server listening on port ${port}`);
-    })
+    }) */
 
-    /*
+    
     // Fix for A6-Sensitive Data Exposure
     // Use secure HTTPS protocol
     https.createServer(httpsOptions, app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     });
-    */
+   
 
 });

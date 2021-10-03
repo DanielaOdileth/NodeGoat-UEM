@@ -115,7 +115,6 @@ function ProfileHandler() {
 
         if (!isValid) {
             console.log("user did not validate");
-            console.log('errors --> ', errors);
             return res.render("profile", {
                 updateError: 'Please provide validate data',
                 csrftoken: res.locals.csrfToken,
@@ -137,15 +136,16 @@ function ProfileHandler() {
                 bankRouting,
                 website);
 
+            let updateSuccess = false;
+
             /*  if (err) return next(err); */
 
             // WARN: Applying any sting specific methods here w/o checking type of inputs could lead to DoS by HPP
             //firstName = firstName.trim();
             /* user.updateSuccess = true;
             user.userId = userId; */
-
             if (userupdated) {
-                userupdated.updateSuccess = true;
+                updateSuccess = true;
             }
 
             return res.render("profile", {
@@ -157,6 +157,7 @@ function ProfileHandler() {
                 bankAcc,
                 bankRouting,
                 website,
+                updateSuccess,
                 csrftoken: res.locals.csrfToken,
                 environmentalScripts
             });

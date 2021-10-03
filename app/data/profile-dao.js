@@ -1,7 +1,6 @@
 /* The ProfileDAO must be constructed with a connected database object */
 const { UserDAO } = require("./user-dao");
 const User = require('../schemas/User');
-const { ObjectId } = require('mongodb');
 
 function ProfileDAO() {
 

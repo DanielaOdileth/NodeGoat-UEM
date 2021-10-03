@@ -1,8 +1,32 @@
 const bcrypt = require("bcrypt-nodejs");
 const User = require('../schemas/User');
-const uuid = require('../../helper/uuid');
 const { v4: uuidv4 } = require('uuid');
-const { ObjectId } = require('mongodb');
+
+const comparePassword = (fromDB, fromUser) => {
+    // Fix for A2-Broken Auth
+    // compares decrypted password stored in this.addUser()
+    return bcrypt.compareSync(fromDB, fromUser);;
+}
+
+const validateUserDoc = (user, password) => {
+
+    if (user) {
+        if (comparePassword(password, user.password)) {
+            console.log('return user to comparePassword -----> ', user);
+            return user;
+        } else {
+            const invalidPasswordError = new Error("Invalid password");
+            // Set an extra field so we can distinguish this from a db error
+            invalidPasswordError.invalidPassword = true;
+            return;
+        }
+    } else {     
+        const noSuchUserError = new Error("User: " + user + " does not exist");
+        // Set an extra field so we can distinguish this from a db error
+        noSuchUserError.noSuchUser = true;
+        return;
+    }
+}
 
 /* The UserDAO must be constructed with a connected database object */
 function UserDAO() {
@@ -27,7 +51,7 @@ function UserDAO() {
             firstName,
             lastName,
             benefitStartDate: this.getRandomFutureDate(),
-            password //received from request param
+            password: bcrypt.hashSync(password, bcrypt.genSaltSync()) //received from request param
             /*
             // Fix for A2-1 - Broken Auth
             // Stores password  in a safer way using one way encryption and salt hashing
@@ -66,40 +90,17 @@ function UserDAO() {
     this.validateLogin = async (userName, password) => {
 
         // Helper function to compare passwords
-        /* const comparePassword = (fromDB, fromUser) => {
-            return fromDB === fromUser;
-            
-            // Fix for A2-Broken Auth
-            // compares decrypted password stored in this.addUser()
-            // return bcrypt.compareSync(fromDB, fromUser);
-        } */
-
         // Callback to pass to MongoDB that validates a user document
-        /* const validateUserDoc = (err, user) => {
-
-            if (err) return callback(err, null);
-
-            if (user) {
-                if (comparePassword(password, user.password)) {
-                    callback(null, user);
-                } else {
-                    const invalidPasswordError = new Error("Invalid password");
-                    // Set an extra field so we can distinguish this from a db error
-                    invalidPasswordError.invalidPassword = true;
-                    callback(invalidPasswordError, null);
-                }
-            } else {
-                const noSuchUserError = new Error("User: " + user + " does not exist");
-                // Set an extra field so we can distinguish this from a db error
-                noSuchUserError.noSuchUser = true;
-                callback(noSuchUserError, null);
-            }
-        } */
-
-        return User.findOne({
-            username: userName,
-            password,
-        }).exec();
+        try {
+            const user = await User.findOne({
+                username: userName,
+                // password,
+            }).exec();
+            return validateUserDoc(user, password);
+        } catch (error) {
+            console.log('there was an erro to validateLogin', error);
+            return error;
+        }
         /* usersCol.findOne({
             userName: userName
         }, validateUserDoc); */
