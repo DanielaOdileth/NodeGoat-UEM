@@ -101,15 +101,17 @@ function ProfileHandler() {
 
         try {
             const userupdated = await profile.updateUser(
-                userId,
-                firstName,
-                lastName,
-                ssn,
-                dob,
-                address,
-                bankAcc,
-                bankRouting,
-                website);
+                {
+                    userId,
+                    firstName,
+                    lastName,
+                    ssn,
+                    dob,
+                    address,
+                    bankAcc,
+                    bankRouting,
+                    website
+                });
 
             let updateSuccess = false;
             if (userupdated) {

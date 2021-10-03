@@ -7,8 +7,9 @@ module.exports = {
     port,
     db,
     cookieSecret: "session_cookie_secret_key_here",
-    cryptoKey: "a_secure_key_for_crypto_here",
-    cryptoAlgo: "aes256",
+    cryptoAlgo: "aes-256-cbc",
+    cryptoKey: "bf3c199c2470cb477d907b1e0917c17b",
+    cryptoIv: "5183666c72eec9e4",
     hostName: "localhost",
     environmentalScripts: []
 };

@@ -1,6 +1,8 @@
 /* The ProfileDAO must be constructed with a connected database object */
 const { UserDAO } = require("./user-dao");
 const User = require('../schemas/User');
+const crypto = require("crypto");
+const config = require("../../config/config");
 
 function ProfileDAO() {
 
@@ -14,36 +16,20 @@ function ProfileDAO() {
     }
 
     const userDAO = new UserDAO();
-    /* const users = db.collection("users"); */
 
-    /* Fix for A6 - Sensitive Data Exposure
-
-    // Use crypto module to save sensitive data such as ssn, dob in encrypted format
-    const crypto = require("crypto");
-    const config = require("../../config/config");
-
-    /// Helper method create initialization vector
-    // By default the initialization vector is not secure enough, so we create our own
-    const createIV = () => {
-        // create a random salt for the PBKDF2 function - 16 bytes is the minimum length according to NIST
-        const salt = crypto.randomBytes(16);
-        return crypto.pbkdf2Sync(config.cryptoKey, salt, 100000, 512, "sha512");
-    };
-
+    // Fix for A6 - Sensitive Data Exposure
     // Helper methods to encryt / decrypt
     const encrypt = (toEncrypt) => {
-        config.iv = createIV();
-        const cipher = crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
-        return `${cipher.update(toEncrypt, "utf8", "hex")} ${cipher.final("hex")}`;
+        const cipher = crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.cryptoIv);
+        return `${cipher.update(toEncrypt, "utf8", "hex")}${cipher.final("hex")}`;
     };
 
     const decrypt = (toDecrypt) => {
-        const decipher = crypto.createDecipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
-        return `${decipher.update(toDecrypt, "hex", "utf8")} ${decipher.final("utf8")}`;
+        const decipher = crypto.createDecipheriv(config.cryptoAlgo, config.cryptoKey, config.cryptoIv);
+        return `${decipher.update(toDecrypt, "hex", "utf8")}${decipher.final("utf8")}`;
     };
-    */
 
-    this.updateUser = (userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting) => {
+    this.updateUser = ({ userId, firstName, lastName, ssn, dob, address, website, bankAcc, bankRouting }) => {
 
         // Create user document
         const user = {};
@@ -54,36 +40,39 @@ function ProfileDAO() {
             user.lastName = lastName;
         }
         if (address) {
-            user.address = new Date(address);
+            user.address = encrypt(address);
         }
         if (bankAcc) {
-            user.bankAcc = bankAcc;
+            user.bankAcc = encrypt(bankAcc);
         }
         if (bankRouting) {
-            user.bankRouting = bankRouting;
+            user.bankRouting = encrypt(bankRouting);
         }
         if (ssn) {
-            user.ssn = ssn;
+            user.ssn = encrypt(ssn);
         }
         if (dob) {
             user.dob = dob;
         }
-        /*
-        // Fix for A7 - Sensitive Data Exposure
-        // Store encrypted ssn and DOB
-        if(ssn) {
-            user.ssn = encrypt(ssn);
+        if (dob) {
+            user.website = website;
         }
-        if(dob) {
-            user.dob = encrypt(dob);
-        }
-        */
-
         return User.updateOne({ userId: userId }, { $set: user }).exec();
     };
 
-    this.getByUserId = (userId) => {
-        return userDAO.getUserById(userId);
+    this.getByUserId = async (userId) => {
+        try {
+
+            const user = await userDAO.getUserById(userId);
+            user.ssn = user.ssn ? decrypt(user.ssn) : "";
+            user.bankRouting = user.bankRouting ? decrypt(user.bankRouting) : "";
+            user.bankAcc = user.bankAcc ? decrypt(user.bankAcc) : "";
+            user.address = user.address ? decrypt(user.address) : "";
+            return user;
+        } catch (error) {
+            console.log('there was an error to getByUserId', error);
+            return error
+        }
     };
 }
 
