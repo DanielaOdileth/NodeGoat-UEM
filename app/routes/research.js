@@ -29,19 +29,7 @@ function ResearchHandler() {
         if (symbol) {
             const yahooUrl = 'https://finance.yahoo.com/quote/'
             const url = `${yahooUrl}${symbol}`;
-            return needle.get(url, (error, newResponse, body) => {
-                if (!error && newResponse.statusCode === 200) {
-                    res.writeHead(200, {
-                        "Content-Type": "text/html"
-                    });
-                }
-                res.write("<h1>The following is the stock information you requested.</h1>\n\n");
-                res.write("\n\n");
-                if (body) {
-                    res.write(body);
-                }
-                return res.end();
-            });
+            return res.redirect(`${url}`)
         }
 
         return res.render("research", {

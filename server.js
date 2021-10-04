@@ -11,22 +11,12 @@ const helmet = require("helmet");
 const cors = require('cors');
 const mongoose = require('mongoose');
 const compression = require('compression');
-const cookieParser = require('cookie-parser')
 const marked = require("marked");
-const fs = require("fs");
-const https = require("https");
-const path = require("path");
 const MongoStore = require('connect-mongo');
 const logger = require('./app/utils/logger');
 
-//const nosniff = require('dont-sniff-mimetype');
 const routes = require("./app/routes");
 const { port, db: dbUri, cookieSecret } = require("./config/config"); // Application config properties
-
-const httpsOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.key")),
-    cert: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.crt"))
-};
 
 mongoose.connect(dbUri, (err, db) => {
     if (err) {
@@ -50,13 +40,6 @@ mongoose.connect(dbUri, (err, db) => {
 
     app.use(cors());
     app.use(favicon(__dirname + "/app/assets/favicon.ico"));
-
-    // Express middleware to populate "req.body" so we can access POST variables
-    /* app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({
-        // Mandatory in Express v4
-        extended: false
-    })); */
 
     // Enable session management using express middleware
     app.use(session({
@@ -88,11 +71,6 @@ mongoose.connect(dbUri, (err, db) => {
         /* res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000'); */
         next();
     });
-    /* app.use((req, res, next) => {
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000');
-        res.locals.csrftoken = req.csrfToken();
-        next();
-    }) */
 
     // Initializing marked library
     // Fix for A9 - Insecure Dependencies
@@ -106,24 +84,10 @@ mongoose.connect(dbUri, (err, db) => {
 
     // Template system setup
     swig.setDefaults({
-        // Autoescape disabled
-        // autoescape: false
-        // Fix for A3 - XSS, enable auto escaping
         autoescape: true // default value
     });
 
-    // Insecure HTTP connection
-    /* http.createServer(app).listen(port, () => {
-        console.log(`Express http server listening on port ${port}`);
-    }); */
     app.listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     })
-
-
-    // Fix for A6-Sensitive Data Exposure
-    // Use secure HTTPS protocol
-    /* https.createServer(httpsOptions, app).listen(port, () => {
-        logger.info(`Express http server listening on port ${port}`);
-    }); */
 });
