@@ -118,7 +118,7 @@ mongoose.connect(dbUri, (err, db) => {
     /* http.createServer(app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     }); */
-    app.listen(4000, () => {
+    app.listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     })
 
