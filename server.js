@@ -87,6 +87,7 @@ mongoose.connect(dbUri, (err, db) => {
         res.cookie('XSRF-TOKEN', token);
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
+        /* res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000'); */
         next();
     });
     /* app.use((req, res, next) => {
@@ -117,19 +118,14 @@ mongoose.connect(dbUri, (err, db) => {
     /* http.createServer(app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     }); */
-    /* app.listen(4000, () => {
+    app.listen(4000, () => {
         console.log(`Express http server listening on port ${port}`);
-    }) */
+    })
 
 
     // Fix for A6-Sensitive Data Exposure
     // Use secure HTTPS protocol
-    const server = https.createServer(httpsOptions, app).listen(port, () => {
+    /* https.createServer(httpsOptions, app).listen(port, () => {
         logger.info(`Express http server listening on port ${port}`);
-    });
-
-    server.on('clientError', (err, socket) => {
-        logger.error(`Cliente error: ${err}`);
-        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
-      });
+    }); */
 });
