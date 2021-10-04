@@ -36,14 +36,6 @@ mongoose.connect(dbUri, (err, db) => {
     logger.info(`Connected to the database`);
 
     const app = express();
-    app.set('trust proxy', 1) // trust first proxy
-    app.use(session({
-        secret: cookieSecret,
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: true },
-        store: MongoStore.create({ mongoUrl: dbUri })
-    }))
 
     app.use((req, res, next) => {
         res.removeHeader("X-Powered-By");
@@ -67,7 +59,7 @@ mongoose.connect(dbUri, (err, db) => {
     })); */
 
     // Enable session management using express middleware
-    /* app.use(session({
+    app.use(session({
         secret: cookieSecret,
         name: "sessionId",
         key: "sessionId",
@@ -77,9 +69,10 @@ mongoose.connect(dbUri, (err, db) => {
             sameSite: true,
             maxAge: 600000
         },
+        store: MongoStore.create({ mongoUrl: dbUri }),
         saveUninitialized: true,
         resave: true
-    })); */
+    }));
 
     app.use(csrf());
 
@@ -94,7 +87,6 @@ mongoose.connect(dbUri, (err, db) => {
         res.cookie('XSRF-TOKEN', token);
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        /* res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000'); */
         next();
     });
     /* app.use((req, res, next) => {
@@ -136,5 +128,8 @@ mongoose.connect(dbUri, (err, db) => {
         logger.info(`Express http server listening on port ${port}`);
     });
 
-
+    server.on('clientError', (err, socket) => {
+        logger.error(`Cliente error: ${err}`);
+        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+      });
 });
