@@ -61,10 +61,10 @@ mongoose.connect(dbUri, (err, db) => {
     // Enable session management using express middleware
     app.use(session({
         secret: cookieSecret,
-        name: "sessionId",
-        key: "sessionId",
+        /* name: "sessionId",
+        key: "sessionId", */
         cookie: {
-            secure: true,
+            secure: false,
             httpOnly: true,
             sameSite: true,
             maxAge: 600000
