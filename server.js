@@ -16,18 +16,19 @@ const marked = require("marked");
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
+const MongoStore = require('connect-mongo');
 const logger = require('./app/utils/logger');
 
 //const nosniff = require('dont-sniff-mimetype');
 const routes = require("./app/routes");
-const { port, db, cookieSecret } = require("./config/config"); // Application config properties
+const { port, db: dbUri, cookieSecret } = require("./config/config"); // Application config properties
 
 const httpsOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.key")),
     cert: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.crt"))
 };
 
-mongoose.connect(db, (err, db) => {
+mongoose.connect(dbUri, (err, db) => {
     if (err) {
         logger.error(`Error: DB: connect: ${err}`);
         process.exit(1);
@@ -37,10 +38,11 @@ mongoose.connect(db, (err, db) => {
     const app = express();
     app.set('trust proxy', 1) // trust first proxy
     app.use(session({
-        secret: 'keyboard cat',
+        secret: cookieSecret,
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: true }
+        cookie: { secure: true },
+        store: MongoStore.create({ mongoUrl: dbUri })
     }))
 
     app.use((req, res, next) => {
