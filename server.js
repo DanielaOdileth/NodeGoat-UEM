@@ -35,6 +35,13 @@ mongoose.connect(db, (err, db) => {
     logger.info(`Connected to the database`);
 
     const app = express();
+    app.set('trust proxy', 1) // trust first proxy
+    app.use(session({
+        secret: 'keyboard cat',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: true }
+    }))
 
     app.use((req, res, next) => {
         res.removeHeader("X-Powered-By");
@@ -58,7 +65,7 @@ mongoose.connect(db, (err, db) => {
     })); */
 
     // Enable session management using express middleware
-    app.use(session({
+    /* app.use(session({
         secret: cookieSecret,
         name: "sessionId",
         key: "sessionId",
@@ -70,7 +77,7 @@ mongoose.connect(db, (err, db) => {
         },
         saveUninitialized: true,
         resave: true
-    }));
+    })); */
 
     app.use(csrf());
 
