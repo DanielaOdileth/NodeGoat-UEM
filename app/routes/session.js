@@ -235,6 +235,7 @@ function SessionHandler() {
                     firstName: user.firstName,
                     lastName: user.lastName,
                     userId: user.userId,
+                    csrftoken: res.locals.csrfToken,
                     environmentalScripts
                 });
             }

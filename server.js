@@ -64,7 +64,7 @@ mongoose.connect(dbUri, (err, db) => {
         /* name: "sessionId",
         key: "sessionId", */
         cookie: {
-            secure: false,
+            secure: true,
             httpOnly: true,
             sameSite: true,
             maxAge: 600000
