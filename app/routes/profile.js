@@ -22,22 +22,26 @@ function ProfileHandler() {
             // while this same variable is also used in the context of a URL link element
             userProfile.website = ESAPI.encoder().encodeForURL(userProfile.website)
             userProfile.firstNameSafeString = ESAPI.encoder().encodeForURL(userProfile.firstName)
+            let dateAsString = "";
+            if (userProfile.dob) {
+                dateAsString = new Date(userProfile.dob).toISOString().split("T")[0];
+            }
             const {
                 firstName,
                 lastName,
                 ssn,
-                dob,
                 bankAcc,
                 bankRouting,
                 address,
                 website,
                 firstNameSafeString
             } = userProfile
+
             return res.render("profile", {
                 firstName,
                 lastName,
                 ssn,
-                dob,
+                dob: dateAsString,
                 bankAcc,
                 bankRouting,
                 address,
@@ -93,7 +97,7 @@ function ProfileHandler() {
         }, true);
 
         if (!isValid) {
-            logger.warn();("user ist not valid");
+            logger.warn(); ("user ist not valid");
             return res.render("profile", {
                 updateError: 'Please provide validate data',
                 userId,

@@ -13,12 +13,14 @@ function BenefitsDAO() {
         return new BenefitsDAO();
     }
 
-    /* const usersCol = db.collection("users"); */
-    /* const userDAO = new UserDAO(); */
-
-    this.getAllNonAdminUsers = () => {
-        return User.find({ "isAdmin": { $ne: true } }).exec();
-        /* .toArray((err, users) => callback(null, users)); */
+    this.getAllNonAdminUsers = async () => {
+        const users =  await User.find({ "isAdmin": { $ne: true } }).exec();
+        const usersObjects = users.map(user => {
+            const { userId, firstName, lastName, benefitStartDate } = user;
+            const benefitDateString = new Date(benefitStartDate).toISOString().split("T")[0];
+            return { userId, firstName, lastName, benefitStartDate: benefitDateString };
+        })
+        return usersObjects;
     };
 
     this.updateBenefits = (userId, startDate) => {

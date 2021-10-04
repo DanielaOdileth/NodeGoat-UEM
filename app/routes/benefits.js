@@ -46,8 +46,6 @@ function BenefitsHandler() {
         const { userId: adminUserId } = req.session;
         try {
             const userProfile = await profile.getByUserId(adminUserId);
-            const nonAdminUsers = await benefits.getAllNonAdminUsers();
-
             const { isValid } = validateUserParams({ benefitStartDate }, true);
 
             if (!isValid) {
@@ -56,6 +54,7 @@ function BenefitsHandler() {
                     updateError: 'benefitStartDate does not have the correct format',
                     environmentalScripts
                 };
+                const nonAdminUsers = await benefits.getAllNonAdminUsers();
                 return res.render("benefits", {
                     firstName: userProfile.firstName,
                     lastName: userProfile.lastName,
@@ -70,9 +69,9 @@ function BenefitsHandler() {
             }
 
             await benefits.updateBenefits(userId, benefitStartDate);
-
+            const nonAdminUsersUpdated = await benefits.getAllNonAdminUsers();
             const data = {
-                users: nonAdminUsers,
+                users: nonAdminUsersUpdated,
                 user: {
                     isAdmin: true
                 },
