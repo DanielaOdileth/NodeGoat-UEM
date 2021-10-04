@@ -85,7 +85,7 @@ mongoose.connect(db, (err, db) => {
         res.cookie('XSRF-TOKEN', token);
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000');
+        /* res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000'); */
         next();
     });
     /* app.use((req, res, next) => {
