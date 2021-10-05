@@ -69,22 +69,6 @@ const index = (app, db) => {
         return res.redirect('https://www.khanacademy.org/economics-finance-domain/core-finance/investment-vehicles-tutorial/ira-401ks/v/traditional-iras');
     });
 
-    // Handle redirect for learning resources link
-    app.get("/tutorial", (req, res) => {
-        return res.render("tutorial/a1", {
-            environmentalScripts
-        });
-    });
-
-    app.get("/tutorial/:page", (req, res) => {
-        const {
-            page
-        } = req.params
-        return res.render(`tutorial/${page}`, {
-            environmentalScripts
-        });
-    });
-
     // Research Page
     app.get("/research", isLoggedIn, researchHandler.displayResearch);
 
