@@ -57,7 +57,7 @@ mongoose.connect(dbUri, (err, db) => {
         resave: true
     }));
 
-    app.set('trustproxy', true)
+    app.set('trust proxy', true)
 
     app.use(csrf());
 
