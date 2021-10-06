@@ -47,6 +47,7 @@ mongoose.connect(dbUri, (err, db) => {
         name: "session-token",
         cookie: {
             httpOnly: true,
+            proxy: true,
             sameSite: true,
             maxAge: 600000,
             secure: process.env.NODE_ENV !== "development"
@@ -66,7 +67,12 @@ mongoose.connect(dbUri, (err, db) => {
 
     app.use((req, res, next) => {
         const token = req.csrfToken();
-        res.cookie('XSRF-TOKEN', token, { sameSite: true, httpOnly: true,  secure: process.env.NODE_ENV !== "development"});
+        res.cookie('XSRF-TOKEN', token, {
+            sameSite: true,
+            proxy: true,
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development"
+        });
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
         res.setHeader('Access-Control-Allow-Origin', domain);
