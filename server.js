@@ -48,8 +48,7 @@ mongoose.connect(dbUri, (err, db) => {
         cookie: {
             httpOnly: true,
             sameSite: true,
-            maxAge: 600000,
-            secure: process.env.NODE_ENV !== "development"
+            maxAge: 600000
         },
         store: MongoStore.create({ mongoUrl: dbUri }),
         saveUninitialized: true,
