@@ -49,7 +49,8 @@ mongoose.connect(dbUri, (err, db) => {
             httpOnly: true,
             proxy: true,
             sameSite: true,
-            maxAge: 600000
+            maxAge: 600000,
+            secure: process.env.NODE_ENV !== "development"
         },
         store: MongoStore.create({ mongoUrl: dbUri }),
         saveUninitialized: true,
@@ -74,9 +75,9 @@ mongoose.connect(dbUri, (err, db) => {
         });
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        res.setHeader('Access-Control-Allow-Origin', domain);
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+          res.setHeader('Access-Control-Allow-Origin', domain);
+          res.setHeader('Content-Type', 'text/html');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
         next();
     });
 
