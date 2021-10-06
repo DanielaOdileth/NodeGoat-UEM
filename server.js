@@ -69,7 +69,7 @@ mongoose.connect(dbUri, (err, db) => {
         res.cookie('XSRF-TOKEN', token, { sameSite: true, httpOnly: true,  secure: process.env.NODE_ENV !== "development"});
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        res.setHeader('Access-Control-Allow-Origin', domain);
+        /* res.setHeader('Access-Control-Allow-Origin', domain); */
         res.setHeader('Content-Type', 'text/html');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
         next();
