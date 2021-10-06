@@ -7,7 +7,7 @@ const session = require("express-session");
 const consolidate = require("consolidate"); // Templating library adapter for Express
 const swig = require("swig");
 const helmet = require("helmet");
-
+const contentSecurityPolicy = require("helmet-csp");
 const cors = require('cors');
 const mongoose = require('mongoose');
 const compression = require('compression');
@@ -16,7 +16,7 @@ const MongoStore = require('connect-mongo');
 const logger = require('./app/utils/logger');
 
 const routes = require("./app/routes");
-const { port, db: dbUri, cookieSecret } = require("./config/config"); // Application config properties
+const { port, db: dbUri, cookieSecret, domain } = require("./config/config"); // Application config properties
 
 mongoose.connect(dbUri, (err, db) => {
     if (err) {
@@ -47,8 +47,10 @@ mongoose.connect(dbUri, (err, db) => {
         name: "session-token",
         cookie: {
             httpOnly: true,
+            proxy: true,
             sameSite: true,
-            maxAge: 600000
+            maxAge: 600000,
+            secure: process.env.NODE_ENV !== "development"
         },
         store: MongoStore.create({ mongoUrl: dbUri }),
         saveUninitialized: true,
@@ -65,10 +67,17 @@ mongoose.connect(dbUri, (err, db) => {
 
     app.use((req, res, next) => {
         const token = req.csrfToken();
-        res.cookie('XSRF-TOKEN', token);
+        res.cookie('XSRF-TOKEN', token, {
+            sameSite: true,
+            proxy: true,
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development"
+        });
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        /* res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4000'); */
+        res.setHeader('Access-Control-Allow-Origin', domain);
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
         next();
     });
 
