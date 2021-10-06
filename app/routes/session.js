@@ -114,6 +114,7 @@ function SessionHandler() {
     };
 
     this.displaySignupPage = (req, res) => {
+        res.clearCookie();
         res.render("signup", {
             userNameError: "",
             password: "",
