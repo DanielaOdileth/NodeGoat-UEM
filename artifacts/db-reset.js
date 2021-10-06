@@ -32,7 +32,6 @@ Promise.all([User.collection.drop(), Allocation.collection.drop(), Contribution.
     })
 
 if (USERS_TO_INSERT) {
-    console.log('USERS_TO_INSERT ---> ', USERS_TO_INSERT);
     User.insertMany(USERS_TO_INSERT)
         .then(async response => {
             // Adding key values to insert Allocations 
