@@ -24,3 +24,4 @@ test/e2e/screenshots/
 
 .env
 first-data.js
+config/env/all.js

@@ -11,6 +11,6 @@ module.exports = {
     cryptoIv: "5183666c72eec9e4",
     hostName: "localhost",
     environmentalScripts: [],
-    domain: 'http:localhost:4000' 
+    domain: 'http://localhost:4000' 
 };
 

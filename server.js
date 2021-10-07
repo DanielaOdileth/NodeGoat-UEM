@@ -33,15 +33,32 @@ mongoose.connect(dbUri, (err, db) => {
     });
     app.use(helmet());
 
-    // Adding/ remove HTTP Headers for security
+/*     const whitelistedSources = [
+       `${domain}`, "'unsafe-inline'", "'unsafe-eval'" 
+       `${domain}/js/`
+    ];
+
+    //  Helmet setup
+    app.use(helmet.contentSecurityPolicy({
+        useDefaults: false,
+        directives: {
+            'default-src': [domain],
+            'script-src': ['http://localhost:4000/vendor/bootstrap/bootstrap.js', 'http://localhost:4000/vendor/jquery.min.js'],
+            'style-src': ['http://localhost:4000/vendor/bootstrap/bootstrap.css', 'http://localhost:4000/vendor/theme/sb-admin.css', 'http://localhost:4000/vendor/theme/font-awesome/css/font-awesome.min.css'],
+            'font-src': ['http://localhost:4000/vendor/theme/font-awesome/fonts/fontawesome-webfont.ttf', 'http://localhost:4000/vendor/fonts/glyphicons-halflings-regular.ttf'],
+            'img-src': ['http://localhost:4000/images/owasplogo.png']
+        },
+    })); */
+
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json({ limit: '16mb' }));
     app.use(compression())
 
-    app.use(cors());
+    app.use(cors({
+        origin: domain,
+    }));
     app.use(favicon(__dirname + "/app/assets/favicon.ico"));
 
-    // Enable session management using express middleware
     app.use(session({
         secret: cookieSecret,
         name: "session-token",
@@ -50,7 +67,7 @@ mongoose.connect(dbUri, (err, db) => {
             proxy: true,
             sameSite: true,
             maxAge: 600000,
-            secure: process.env.NODE_ENV !== "development"
+            secure: process.env.NODE_ENV !== "development",
         },
         store: MongoStore.create({ mongoUrl: dbUri }),
         saveUninitialized: true,
@@ -61,7 +78,6 @@ mongoose.connect(dbUri, (err, db) => {
 
     app.use(csrf());
 
-    // Register templating engine
     app.engine(".html", consolidate.swig);
     app.set("view engine", "html");
     app.set("views", `${__dirname}/app/views`);
@@ -73,13 +89,13 @@ mongoose.connect(dbUri, (err, db) => {
             sameSite: true,
             proxy: true,
             httpOnly: true,
-            secure: process.env.NODE_ENV !== "development"
+            secure: process.env.NODE_ENV !== "development",
         });
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-          res.setHeader('Access-Control-Allow-Origin', domain);
-          res.setHeader('Content-Type', 'text/html');
-          res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+        res.setHeader('Cache-Control', 'public, max-age=600'); 
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
         next();
     });
 
