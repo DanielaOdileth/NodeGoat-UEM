@@ -49,7 +49,7 @@ const validateMardown = (value) => {
 }
 
 const validateSymbol = (value) => {
-    const regex = /^[a-zA-Z]$/;
+    const regex = /^[a-zA-Z]{1,5}$/;
     if (!regex.test(value)) {
         return { isValid: false, error: 'Please enter a valid symbol' }
     }

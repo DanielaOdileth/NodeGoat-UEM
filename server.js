@@ -33,19 +33,12 @@ mongoose.connect(dbUri, (err, db) => {
     });
     app.use(helmet());
 
-        const whitelistedSources = [ `${domain}`, "'unsafe-inline'", "unsafe-eval"];
-    
-        //  Helmet setup
-        app.use(helmet.contentSecurityPolicy({
-            useDefaults: false,
-            directives: {
-                'default-src': whitelistedSources,
-                'script-src': whitelistedSources,
-                'style-src': whitelistedSources,
-                'font-src': whitelistedSources,
-                'img-src': whitelistedSources
-            },
-        }));
+    app.use(helmet.contentSecurityPolicy({
+        useDefaults: false,
+        directives: {
+            'default-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+        },
+    }));
 
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json({ limit: '16mb' }));
