@@ -6,14 +6,11 @@
   "main": "server.js",
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
-    "body-parser": "^1.15.1",
     "compression": "^1.7.4",
     "connect-mongo": "^4.6.0",
     "consolidate": "^0.14.1",
-    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "csurf": "^1.8.3",
-    "dont-sniff-mimetype": "^1.0.0",
     "dotenv": "^10.0.0",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
@@ -31,9 +28,6 @@
     "swig": "^1.4.2",
     "underscore": "^1.13.1",
     "uuid": "^8.3.2"
-  },
-  "comments": {
-    "//": "a9 insecure components"
   },
   "scripts": {
     "start": "node server.js",
