@@ -33,22 +33,19 @@ mongoose.connect(dbUri, (err, db) => {
     });
     app.use(helmet());
 
-/*     const whitelistedSources = [
-       `${domain}`, "'unsafe-inline'", "'unsafe-eval'" 
-       `${domain}/js/`
-    ];
-
-    //  Helmet setup
-    app.use(helmet.contentSecurityPolicy({
-        useDefaults: false,
-        directives: {
-            'default-src': [domain],
-            'script-src': ['http://localhost:4000/vendor/bootstrap/bootstrap.js', 'http://localhost:4000/vendor/jquery.min.js'],
-            'style-src': ['http://localhost:4000/vendor/bootstrap/bootstrap.css', 'http://localhost:4000/vendor/theme/sb-admin.css', 'http://localhost:4000/vendor/theme/font-awesome/css/font-awesome.min.css'],
-            'font-src': ['http://localhost:4000/vendor/theme/font-awesome/fonts/fontawesome-webfont.ttf', 'http://localhost:4000/vendor/fonts/glyphicons-halflings-regular.ttf'],
-            'img-src': ['http://localhost:4000/images/owasplogo.png']
-        },
-    })); */
+        const whitelistedSources = [ `${domain}`, "'unsafe-inline'", "unsafe-eval"];
+    
+        //  Helmet setup
+        app.use(helmet.contentSecurityPolicy({
+            useDefaults: false,
+            directives: {
+                'default-src': whitelistedSources,
+                'script-src': whitelistedSources,
+                'style-src': whitelistedSources,
+                'font-src': whitelistedSources,
+                'img-src': whitelistedSources
+            },
+        }));
 
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json({ limit: '16mb' }));
@@ -93,7 +90,7 @@ mongoose.connect(dbUri, (err, db) => {
         });
         res.locals.csrfToken = token;
         res.locals.token = req.session._csrf;
-        res.setHeader('Cache-Control', 'public, max-age=600'); 
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
         res.setHeader('Content-Type', 'text/html');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
         next();
