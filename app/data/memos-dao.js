@@ -25,18 +25,10 @@ function MemosDAO(db) {
         const newMemo = new Memo(memos);
         return newMemo.save();
 
-        /* memosCol.insert(memos, (err, result) => !err ? callback(null, result) : callback(err, null)); */
     };
 
     this.getAllMemos = () => {
         return Memo.find({}).sort({ timestamp: -1 }).exec();
-        /* memosCol.find({}).sort({
-            timestamp: -1
-        }).toArray((err, memos) => {
-            if (err) return callback(err, null);
-            if (!memos) return callback("ERROR: No memos found", null);
-            callback(null, memos);
-        }); */
     };
 
 }

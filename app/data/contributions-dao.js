@@ -50,51 +50,27 @@ function ContributionsDAO() {
         } catch (error) {
             logger.error(`There was an error to update contributions-data ${error}`);
         }
-        /* err => {
-            if (!err) {
-                console.log("Updated contributions");
-                // add user details
-                userDAO.getUserById(parsedUserId, (err, user) => {
-
-                    if (err) return callback(err, null);
-
-                    contributions.userName = user.userName;
-                    contributions.firstName = user.firstName;
-                    contributions.lastName = user.lastName;
-                    contributions.userId = userId;
-
-                    return callback(null, contributions);
-                });
-            } else {
-                return callback(err, null);
-            }
-        } */
     };
 
     this.getByUserId = async (userId) => {
         try {
             const user = await userDAO.getUserById(userId);
-
-            let userContributions = await Contribution.findOne({ userId: user._id }).exec();
-            /* (err, contributions) => { */
-            /* if (err) return callback(err, null); */
-
-            // Set defualt contributions if not set
-            userContributions = userContributions || {
+            let userContributions = {
                 preTax: 2,
                 afterTax: 2,
                 roth: 2
             };
 
-            // add user details
+            let contributions = await Contribution.findOne({ userId: user._id }).exec();
+            if (contributions) {
+                const { preTax: userPT, afterTax: userAT, roth: userR } = contributions;
+                userContributions = { preTax: userPT, afterTax: userAT, roth: userR }
+            }
 
-            /* if (err) return callback(err, null); */
             userContributions.firstName = user.firstName;
             userContributions.lastName = user.lastName;
 
             return userContributions;
-
-            /* } */
         } catch (error) {
             logger.error(`error to getUserById contributions-dao. Error: ${error}`);
         }

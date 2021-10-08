@@ -14,13 +14,11 @@ const validateUserDoc = (user, password) => {
             return user;
         } else {
             const invalidPasswordError = new Error("Invalid password");
-            // Set an extra field so we can distinguish this from a db error
             invalidPasswordError.invalidPassword = true;
             return;
         }
-    } else {     
+    } else {
         const noSuchUserError = new Error("User: " + user + " does not exist");
-        // Set an extra field so we can distinguish this from a db error
         noSuchUserError.noSuchUser = true;
         return;
     }
@@ -38,21 +36,17 @@ function UserDAO() {
         return new UserDAO();
     }
 
-    /* const usersCol = db.collection("users"); */
-
     this.addUser = (userName, firstName, lastName, password, email) => {
         logger.info(`Entering to add new user. username ${userName}`)
-        // Create user document
         const user = {
             username: userName,
             userId: uuidv4(),
             firstName,
             lastName,
             benefitStartDate: this.getRandomFutureDate(),
-            password: bcrypt.hashSync(password, bcrypt.genSaltSync()) //received from request param
+            password: bcrypt.hashSync(password, bcrypt.genSaltSync())
         };
 
-        // Add email if set
         if (email) {
             user.email = email;
         }
@@ -66,9 +60,6 @@ function UserDAO() {
     };
 
     this.validateLogin = async (userName, password) => {
-
-        // Helper function to compare passwords
-        // Callback to pass to MongoDB that validates a user document
         try {
             const user = await User.findOne({
                 username: userName,
@@ -89,6 +80,10 @@ function UserDAO() {
 
     this.getUserByUserName = (username) => {
         return User.findOne({ username }).exec();
+    };
+
+    this.blockUser = (userName) => {
+        return User.updateOne({ username: userName }, { $set: { isEnabled: false } }).exec()
     };
 }
 

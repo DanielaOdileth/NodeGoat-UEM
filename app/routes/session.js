@@ -1,15 +1,15 @@
-const UserDAO = require("../data/user-dao").UserDAO;
+const { UserDAO } = require("../data/user-dao");
 const AllocationsDAO = require("../data/allocations-dao").AllocationsDAO;
 const {
     environmentalScripts
 } = require("../../config/config");
 const { validateUserParams } = require("../utils/validateParams");
 const logger = require('../utils/logger');
+let attemptsNumber = 0;
 
 /* The SessionHandler must be constructed with a connected db */
 function SessionHandler() {
     "use strict";
-
     const userDAO = new UserDAO();
     const allocationsDAO = new AllocationsDAO();
 
@@ -27,7 +27,7 @@ function SessionHandler() {
         if (userId) {
             try {
                 const user = await userDAO.getUserById(userId);
-                if(!user.isAdmin){
+                if (!user.isAdmin) {
                     logger.warn(`The user ${userId} is not an admin user`)
                     res.redirect('/login');
                 }
@@ -65,6 +65,8 @@ function SessionHandler() {
             userName,
             password
         } = req.body
+        let errorMessage = "Invalid username and/or password";
+        attemptsNumber = attemptsNumber + 1;
 
         const { isValid } = validateUserParams({
             userName,
@@ -82,9 +84,35 @@ function SessionHandler() {
             });
         }
         try {
+            const userInfo = await userDAO.getUserByUserName(userName);
+            if (attemptsNumber >= 5 || !userInfo.isEnabled) {
+                if (attemptsNumber === 5) {
+                    await userDAO.blockUser(userName);
+                    logger.warn(`blocking username: ${userName} to exceeded the maxium attempts number`);
+                    return res.render("login", {
+                        userName: userName,
+                        password: "",
+                        loginError: "User blocked maximum attempts exceeded",
+                        csrftoken: res.locals.csrfToken,
+                        environmentalScripts,
+                        disabledButton: true
+                    });
+                   
+                } else if (!userInfo.isEnabled) {
+                    logger.warn(`username: ${userName} is blocked to exceeded the maxium attempts number`);
+                    return res.render("login", {
+                        userName: userName,
+                        password: "",
+                        loginError: "User blocked",
+                        csrftoken: res.locals.csrfToken,
+                        environmentalScripts,
+                        disabledButton: true
+                    });
+                }
+            }
+
             const user = await userDAO.validateLogin(userName, password);
             if (!user) {
-                const errorMessage = "Invalid username and/or password";
                 logger.warn(`Error: attempt to login with invalid user/password. username: ${userName} password: ${password}`);
                 return res.render("login", {
                     userName: userName,
@@ -94,11 +122,12 @@ function SessionHandler() {
                     environmentalScripts
                 });
             }
-            req.session.regenerate(() => { })
+            attemptsNumber = 0;
+            req.session.regenerate();
             req.session.userId = user.userId;
             return res.redirect(user.isAdmin ? "/benefits" : "/dashboard")
         } catch (error) {
-            logger.warn(`There was an erro to login with username: ${userName} password: ${password}. Error: ${error}`);
+            logger.warn(`There was an error to login with username: ${userName} password: ${password}. Error: ${error}`);
             return res.render("login", {
                 userName: userName,
                 password: "",

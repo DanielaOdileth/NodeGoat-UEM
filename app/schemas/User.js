@@ -3,10 +3,10 @@ const { Schema } = mongoose;
 
 const User = new Schema({
     username: { type: String, required: true, index: { unique: true } },
-    userId: { type: String, required: true, unique: true }, 
+    userId: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    password: { type: String, required: true }, // https://coderrocketfuel.com/article/store-passwords-in-mongodb-with-node-js-mongoose-and-bcrypt
+    password: { type: String, required: true },
     isAdmin: { type: Boolean, default: false },
     email: { type: String },
     address: { type: String },
@@ -16,6 +16,7 @@ const User = new Schema({
     benefitStartDate: { type: Date },
     dob: { type: Date },
     website: { type: String },
+    isEnabled: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('users', User);;

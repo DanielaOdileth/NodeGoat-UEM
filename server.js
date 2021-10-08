@@ -90,7 +90,6 @@ mongoose.connect(dbUri, (err, db) => {
     });
 
     // Initializing marked library
-    // Fix for A9 - Insecure Dependencies
     marked.setOptions({
         sanitize: true
     });

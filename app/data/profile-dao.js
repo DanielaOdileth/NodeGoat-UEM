@@ -9,8 +9,6 @@ function ProfileDAO() {
 
     "use strict";
 
-    /* If this constructor is called without the "new" operator, "this" points
-     * to the global object. Log a warning and call it correctly. */
     if (false === (this instanceof ProfileDAO)) {
         logger.warn("Warning: ProfileDAO constructor called without 'new' operator");
         return new ProfileDAO();
@@ -18,8 +16,6 @@ function ProfileDAO() {
 
     const userDAO = new UserDAO();
 
-    // Fix for A6 - Sensitive Data Exposure
-    // Helper methods to encryt / decrypt
     const encrypt = (toEncrypt) => {
         const cipher = crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.cryptoIv);
         return `${cipher.update(toEncrypt, "utf8", "hex")}${cipher.final("hex")}`;
